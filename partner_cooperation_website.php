@@ -10,6 +10,7 @@ if (isset($_GET['logout'])) {
 }
 
 // percobaan
+// code dari cloudy
 // proses login
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
