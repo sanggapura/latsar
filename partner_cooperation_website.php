@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -8,6 +9,7 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
+// percobaan
 // proses login
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
