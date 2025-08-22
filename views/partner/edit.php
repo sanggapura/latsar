@@ -2,6 +2,7 @@
 <h2>Edit Partner</h2>
 <form action="index.php?action=update" method="POST">
     <input type="hidden" name="id" value="<?= $partner['id'] ?>">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
     <label>Nama:</label><br>
     <input type="text" name="name" value="<?= $partner['name'] ?>" required><br><br>

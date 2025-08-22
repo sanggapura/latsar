@@ -203,6 +203,23 @@ footer {
     color: #fff;
 }
 
+/* Flash messages */
+.success {
+    background: #e8f8f0;
+    color: #256d3c;
+    border: 1px solid #27ae60;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.error {
+    background: #fdecea;
+    color: #a33a2a;
+    border: 1px solid #e74c3c;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
 /* =========================
    Dashboard Menu (opsional)
 ========================= */

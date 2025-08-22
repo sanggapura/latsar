@@ -18,29 +18,57 @@ class AuthController {
     }
 
     public function login($data) {
-        $user = $this->user->login($data['email']);
-        if ($user && password_verify($data['password'], $user['password'])) {
-            $_SESSION['user'] = $user;
-            header("Location: index.php");
-        } else {
-            echo "<script>alert('Email atau password salah!'); window.location='auth.php?action=login';</script>";
+        $email = trim($data['email'] ?? '');
+        $password = $data['password'] ?? '';
+        if ($email === '' || $password === '') {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Email dan password wajib diisi'];
+            header("Location: auth.php?action=login_form");
+            exit;
         }
+
+        $user = $this->user->login($email);
+        if ($user && password_verify($password, $user['password'])) {
+            unset($user['password']);
+            $_SESSION['user'] = $user;
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Berhasil login'];
+            header("Location: index.php");
+            exit;
+        }
+
+        $_SESSION['flash'] = ['type' => 'error', 'message' => 'Email atau password salah'];
+        header("Location: auth.php?action=login_form");
+        exit;
     }
 
     public function register($data) {
-        $this->user->username = $data['username'];
-        $this->user->email = $data['email'];
-        $this->user->password = password_hash($data['password'], PASSWORD_BCRYPT);
+        $username = trim($data['username'] ?? '');
+        $email = trim($data['email'] ?? '');
+        $password = $data['password'] ?? '';
+
+        if ($username === '' || $email === '' || $password === '') {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Semua field wajib diisi'];
+            header("Location: auth.php?action=register_form");
+            exit;
+        }
+
+        $this->user->username = $username;
+        $this->user->email = $email;
+        $this->user->password = password_hash($password, PASSWORD_BCRYPT);
 
         if ($this->user->register()) {
-            echo "<script>alert('Registrasi berhasil, silakan login!'); window.location='auth.php?action=login';</script>";
-        } else {
-            echo "<script>alert('Registrasi gagal!'); window.location='auth.php?action=register';</script>";
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Registrasi berhasil, silakan login'];
+            header("Location: auth.php?action=login_form");
+            exit;
         }
+
+        $_SESSION['flash'] = ['type' => 'error', 'message' => 'Registrasi gagal'];
+        header("Location: auth.php?action=register_form");
+        exit;
     }
 
     public function logout() {
         session_destroy();
-        header("Location: auth.php?action=login");
+        header("Location: auth.php?action=login_form");
+        exit;
     }
 }

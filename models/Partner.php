@@ -13,7 +13,7 @@ class Partner {
     }
 
     public function getAll() {
-        $query = "SELECT * FROM " . $this->table;
+        $query = "SELECT * FROM " . $this->table . " ORDER BY id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -49,7 +49,7 @@ class Partner {
     public function delete() {
         $query = "DELETE FROM " . $this->table . " WHERE id=:id";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":id", $this->id);
+        $stmt->bindParam(":id", $this->id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 }

@@ -15,12 +15,14 @@ class User {
     public function register() {
         $query = "INSERT INTO " . $this->table . " (username, email, password) VALUES (:username, :email, :password)";
         $stmt = $this->conn->prepare($query);
-
         $stmt->bindParam(":username", $this->username);
         $stmt->bindParam(":email", $this->email);
         $stmt->bindParam(":password", $this->password);
-
-        return $stmt->execute();
+        try {
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
     }
 
     public function login($email) {

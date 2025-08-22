@@ -3,11 +3,10 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Partner Cooperation Website loaded ✅");
 
     // Tambahkan konfirmasi khusus saat klik hapus
-    const deleteLinks = document.querySelectorAll("a[href*='action=delete']");
-    deleteLinks.forEach(link => {
-        link.addEventListener("click", function(e) {
-            const confirmDelete = confirm("Apakah Anda yakin ingin menghapus partner ini?");
-            if (!confirmDelete) {
+    const deleteForms = document.querySelectorAll("form[action*='action=delete']");
+    deleteForms.forEach(form => {
+        form.addEventListener("submit", function(e) {
+            if (!confirm("Apakah Anda yakin ingin menghapus partner ini?")) {
                 e.preventDefault();
             }
         });
