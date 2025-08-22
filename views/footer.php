@@ -1,6 +1,6 @@
     </main>
-    <footer>
-        <p>&copy; <?= date("Y") ?> Partner Cooperation</p>
+    <footer class="main-footer">
+        <p>&copy; <?= date("Y") ?> Portal Jemari 5.0 PaskerID</p>
     </footer>
 </body>
 </html>

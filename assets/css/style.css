@@ -1,4 +1,24 @@
-/* Header utama */
+/* =========================
+   Global Reset & Body
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+}
+
+/* =========================
+   Header & Title
+========================= */
 .main-header {
     background: linear-gradient(90deg, #1d71b8, #009fe3);
     color: white;
@@ -17,7 +37,9 @@
     opacity: 0.9;
 }
 
-/* Navigasi */
+/* =========================
+   Navigation
+========================= */
 .main-nav {
     display: flex;
     justify-content: space-between;
@@ -53,7 +75,9 @@
     color: #fff;
 }
 
-/* Auth Buttons (kanan) */
+/* =========================
+   Auth Buttons (Login/Logout/Admin)
+========================= */
 .auth-buttons {
     display: flex;
     gap: 10px;
@@ -94,3 +118,119 @@
     background: #d4ac0d;
     color: white;
 }
+
+/* =========================
+   Main Content
+========================= */
+main {
+    padding: 20px;
+}
+
+/* =========================
+   Tables
+========================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+table th, table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background: #34495e;
+    color: #fff;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* =========================
+   Forms
+========================= */
+form {
+    background: #fff;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+form label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+form input, form button {
+    margin-top: 8px;
+    padding: 10px;
+    width: 100%;
+}
+
+form input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background: #219150;
+}
+
+/* =========================
+   Footer
+========================= */
+footer {
+    text-align: center;
+    padding: 15px;
+    margin-top: 30px;
+    background: #2c3e50;
+    color: #fff;
+}
+
+/* =========================
+   Dashboard Menu (opsional jika dipakai di dashboard)
+========================= */
+.menu-dashboard {
+    margin-top: 20px;
+}
+
+.menu-dashboard ul {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-dashboard li {
+    background: #ecf0f1;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.menu-dashboard li:hover {
+    background: #bdc3c7;
+}
+
+.menu-dashboard a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #2c3e50;
+    display: block;
+}
+

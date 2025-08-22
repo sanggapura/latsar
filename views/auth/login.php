@@ -9,5 +9,4 @@
 
     <button type="submit">Login</button>
 </form>
-<p>Belum punya akun? <a href="auth.php?action=register">Daftar disini</a></p>
 <?php include __DIR__ . "/../footer.php"; ?>

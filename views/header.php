@@ -17,20 +17,24 @@ if (session_status() === PHP_SESSION_NONE) {
             <p>Sistem Informasi Kemitraan Strategis Indonesia</p>
         </div>
         <nav class="main-nav">
-            <ul>
-                <li><a href="index.php?action=tahapan">🤝 Tahapan Kerjasama</a></li>
-                <li><a href="index.php?action=kontak">📞 Kontak Mitra</a></li>
-                <li><a href="index.php?action=file_kerjasama">📄 File Kerjasama</a></li>
-                <li><a href="index.php?action=file_lainnya">📂 File Lainnya</a></li>
-            </ul>
-            <div class="auth-buttons">
-                <?php if (isset($_SESSION['user'])): ?>
-                    <a href="auth.php?action=logout" class="btn-logout">Logout (<?= $_SESSION['user']['username'] ?>)</a>
-                <?php else: ?>
+            <?php if (isset($_SESSION['user'])): ?>
+                <ul>
+                    <li><a href="index.php?action=tahapan">🤝 Tahapan Kerjasama</a></li>
+                    <li><a href="index.php?action=kontak">📞 Kontak Mitra</a></li>
+                    <li><a href="index.php?action=file_kerjasama">📄 File Kerjasama</a></li>
+                    <li><a href="index.php?action=file_lainnya">📂 File Lainnya</a></li>
+                </ul>
+                <div class="auth-buttons">
+                    <a href="auth.php?action=logout" class="btn-logout">
+                        Logout (<?= htmlspecialchars($_SESSION['user']['username']) ?>)
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="auth-buttons">
                     <a href="auth.php?action=login" class="btn-login">Login</a>
-                <?php endif; ?>
-                <a href="auth.php?action=admin_login" class="btn-admin">Login Admin</a>
-            </div>
+                    <a href="auth.php?action=admin_login" class="btn-admin">Login Admin</a>
+                </div>
+            <?php endif; ?>
         </nav>
     </header>
     <main>
