@@ -7,10 +7,15 @@
 </head>
 <body>
     <header>
-        <h1>Partner Cooperation Website</h1>
-        <nav>
-            <a href="index.php">Home</a> |
-            <a href="index.php?action=create">Tambah Partner</a>
-        </nav>
-    </header>
+    <h1>Partner Cooperation Website</h1>
+    <nav>
+        <a href="index.php">Home</a> |
+        <a href="index.php?action=create">Tambah Partner</a> |
+        <?php if (isset($_SESSION['user'])): ?>
+            <a href="auth.php?action=logout">Logout (<?= $_SESSION['user']['username'] ?>)</a>
+        <?php else: ?>
+            <a href="auth.php?action=login">Login</a>
+        <?php endif; ?>
+    </nav>
+</header>
     <main>
