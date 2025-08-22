@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -8,6 +9,8 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
+// percobaan
+// code dari cloudy
 // proses login
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
