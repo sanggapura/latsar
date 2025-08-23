@@ -4,6 +4,9 @@
 
 <div class="menu-dashboard">
     <ul>
+        <li><a href="index.php?action=stages">📑 Tahapan Kerjasama</a></li>
+        <li><a href="index.php?action=contacts">📞 Kontak Mitra</a></li>
+        <li><a href="index.php?action=documents">📂 File Dokumen</a></li>
         <li><a href="index.php?action=partners">📌 Daftar Partner</a></li>
         <li><a href="index.php?action=create">➕ Tambah Partner</a></li>
     </ul>
