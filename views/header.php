@@ -81,7 +81,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <header class="main-header">
         <div class="title-container">
             <h1>Portal Jemari 5.0 PaskerID</h1>
-            <p>Sistem Informasi Kemitraan Strategis Indonesia</p>
+            <p>Sistem Informasi Substansi Jejaring Kemitraan Pusat Pasar Kerja</p>
         </div>
         <nav class="main-nav">
             <?php if (isset($_SESSION['user'])): ?>
