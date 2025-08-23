@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = "localhost";
+    private $host = "194.233.86.160";
     private $db_name = "latsar_db";
-    private $username = "root";
-    private $password = "";
+    private $username = "pasker";
+    private $password = "Getjoblivebetter!";
     public $conn;
 
     public function getConnection() {
