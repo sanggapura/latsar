@@ -24,60 +24,21 @@ if (session_status() === PHP_SESSION_NONE) {
         }
 
         .main-header {
-            /* Background gambar dengan overlay gradient */
-            background: 
-                linear-gradient(135deg, rgba(44, 62, 80, 0.8) 0%, rgba(52, 152, 219, 0.8) 100%),
-                url('assets/images/header-bg.jpg') center center / cover no-repeat;
-            
-            /* Fallback jika gambar tidak tersedia */
-            background-color: #2c3e50;
-            
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             color: white;
             padding: 0;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             position: relative;
-            min-height: 300px; /* Minimum height untuk memastikan tampilan bagus */
-        }
-
-        /* Alternatif background dengan pattern jika tidak ada gambar */
-        .main-header.no-image {
-            background: 
-                linear-gradient(135deg, rgba(44, 62, 80, 0.9) 0%, rgba(52, 152, 219, 0.9) 100%),
-                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%),
-                linear-gradient(45deg, #2c3e50 0%, #3498db 100%);
-        }
-
-        /* Overlay pattern untuk tekstur tambahan */
-        .main-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                repeating-linear-gradient(
-                    45deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(255,255,255,0.03) 2px,
-                    rgba(255,255,255,0.03) 4px
-                );
-            pointer-events: none;
         }
 
         /* Top bar untuk auth buttons */
         .top-bar {
-            background: rgba(0,0,0,0.2);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.1);
             padding: 8px 20px;
             display: flex;
             justify-content: flex-end;
             align-items: center;
             gap: 10px;
-            position: relative;
-            z-index: 2;
         }
 
         .auth-buttons {
@@ -96,75 +57,56 @@ if (session_status() === PHP_SESSION_NONE) {
             display: flex;
             align-items: center;
             gap: 6px;
-            backdrop-filter: blur(10px);
         }
 
         .btn-logout { 
-            background: linear-gradient(45deg, rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9)); 
+            background: linear-gradient(45deg, #e74c3c, #c0392b); 
             color: white;
-            border: 1px solid rgba(255,255,255,0.2);
         }
         .btn-admin { 
-            background: linear-gradient(45deg, rgba(39, 174, 96, 0.9), rgba(46, 204, 113, 0.9)); 
+            background: linear-gradient(45deg, #27ae60, #2ecc71); 
             color: white;
-            border: 1px solid rgba(255,255,255,0.2);
         }
         .btn-login { 
-            background: linear-gradient(45deg, rgba(52, 152, 219, 0.9), rgba(41, 128, 185, 0.9)); 
+            background: linear-gradient(45deg, #3498db, #2980b9); 
             color: white;
-            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .auth-buttons a:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         /* Header content */
         .header-content {
             padding: 20px;
             text-align: center;
-            position: relative;
-            z-index: 2;
         }
 
         .title-container h1 {
             margin: 0 0 8px 0;
             font-size: 2.2em;
             font-weight: 700;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             background: linear-gradient(45deg, #fff, #ecf0f1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .title-container p {
             margin: 0;
             font-size: 1.1em;
-            opacity: 0.95;
-            font-weight: 400;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
-            background: rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            display: inline-block;
-            margin-top: 10px;
+            opacity: 0.9;
+            font-weight: 300;
         }
 
         /* Modern Navigation */
         .main-nav {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
             padding: 12px 20px;
             margin-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            position: relative;
-            z-index: 2;
         }
 
         .main-nav ul {
@@ -189,26 +131,24 @@ if (session_status() === PHP_SESSION_NONE) {
             gap: 8px;
             padding: 12px 20px;
             text-decoration: none;
-            background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(247, 147, 30, 0.9));
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
             color: white;
             border-radius: 25px;
             font-weight: 600;
             font-size: 14px;
             transition: all 0.3s ease;
-            box-shadow: 0 3px 15px rgba(255, 107, 53, 0.4);
+            box-shadow: 0 3px 10px rgba(255, 107, 53, 0.3);
             white-space: nowrap;
             width: 200px;
             height: 44px;
             justify-content: center;
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .main-nav ul li > a:hover {
-            background: linear-gradient(135deg, rgba(229, 90, 43, 0.95), rgba(214, 109, 26, 0.95));
+            background: linear-gradient(135deg, #e55a2b, #d66d1a);
             transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(255, 107, 53, 0.5);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
             color: white;
         }
 
@@ -234,18 +174,17 @@ if (session_status() === PHP_SESSION_NONE) {
             top: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(15px);
+            background: white;
             border-radius: 12px;
             min-width: 220px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             z-index: 1000;
             overflow: hidden;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            /* Padding area untuk hover yang lebih mudah */
             padding: 8px 0;
-            border: 1px solid rgba(255,255,255,0.3);
         }
 
         .main-nav ul li ul::before {
@@ -258,7 +197,7 @@ if (session_status() === PHP_SESSION_NONE) {
             height: 0;
             border-left: 8px solid transparent;
             border-right: 8px solid transparent;
-            border-bottom: 8px solid rgba(255,255,255,0.95);
+            border-bottom: 8px solid white;
         }
 
         .main-nav ul li ul li {
@@ -268,24 +207,18 @@ if (session_status() === PHP_SESSION_NONE) {
 
         .main-nav ul li ul li a {
             padding: 14px 20px;
-            background: transparent;
+            background: white;
             color: #2c3e50;
             border-radius: 0;
             font-weight: 500;
             text-align: left;
             transition: all 0.2s ease;
-            border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+            border-bottom: 1px solid #ecf0f1;
             display: flex;
             align-items: center;
             gap: 10px;
             margin: 0 8px;
             border-radius: 6px;
-            backdrop-filter: none;
-            border: none;
-            box-shadow: none;
-            width: auto;
-            height: auto;
-            justify-content: flex-start;
         }
 
         .main-nav ul li ul li:last-child a {
@@ -293,7 +226,7 @@ if (session_status() === PHP_SESSION_NONE) {
         }
 
         .main-nav ul li ul li a:hover {
-            background: linear-gradient(45deg, rgba(52, 152, 219, 0.9), rgba(41, 128, 185, 0.9));
+            background: linear-gradient(45deg, #3498db, #2980b9);
             color: white;
             transform: none;
             box-shadow: none;
@@ -334,8 +267,6 @@ if (session_status() === PHP_SESSION_NONE) {
             border-radius: 8px;
             font-weight: 500;
             animation: slideIn 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
         }
 
         @keyframes slideIn {
@@ -350,36 +281,31 @@ if (session_status() === PHP_SESSION_NONE) {
         }
 
         .success {
-            background: linear-gradient(45deg, rgba(39, 174, 96, 0.9), rgba(46, 204, 113, 0.9));
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
             color: white;
             border-left: 4px solid #1e8449;
         }
 
         .error {
-            background: linear-gradient(45deg, rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9));
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
             color: white;
             border-left: 4px solid #a93226;
         }
 
         .warning {
-            background: linear-gradient(45deg, rgba(243, 156, 18, 0.9), rgba(230, 126, 34, 0.9));
+            background: linear-gradient(45deg, #f39c12, #e67e22);
             color: white;
             border-left: 4px solid #d35400;
         }
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .main-header {
-                min-height: 250px;
-            }
-
             .title-container h1 {
                 font-size: 1.8em;
             }
 
             .title-container p {
                 font-size: 0.9em;
-                padding: 8px 16px;
             }
 
             .main-nav ul {
@@ -418,10 +344,6 @@ if (session_status() === PHP_SESSION_NONE) {
         }
 
         @media (max-width: 480px) {
-            .main-header {
-                min-height: 200px;
-            }
-
             .main-nav ul {
                 flex-direction: column;
                 align-items: center;
@@ -431,37 +353,6 @@ if (session_status() === PHP_SESSION_NONE) {
             .main-nav ul li > a {
                 min-width: 200px;
                 justify-content: center;
-            }
-
-            .title-container h1 {
-                font-size: 1.5em;
-            }
-
-            .title-container p {
-                font-size: 0.8em;
-                padding: 6px 12px;
-            }
-        }
-
-        /* Responsive background image */
-        @media (max-width: 1200px) {
-            .main-header {
-                background-size: cover;
-                background-position: center center;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-header {
-                background-size: cover;
-                background-position: center top;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .main-header {
-                background-size: cover;
-                background-position: center center;
             }
         }
 
@@ -474,75 +365,7 @@ if (session_status() === PHP_SESSION_NONE) {
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-
-        /* Loading placeholder untuk background image */
-        .header-loading {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            transition: all 0.5s ease;
-        }
-
-        /* Animasi ketika background image dimuat */
-        .header-loaded {
-            animation: headerFadeIn 0.8s ease;
-        }
-
-        @keyframes headerFadeIn {
-            from {
-                opacity: 0.8;
-            }
-            to {
-                opacity: 1;
-            }
-        }
     </style>
-
-    <script>
-        // Script untuk menangani loading background image
-        document.addEventListener('DOMContentLoaded', function() {
-            const header = document.querySelector('.main-header');
-            const bgImage = new Image();
-            
-            // Daftar gambar yang bisa digunakan sebagai background
-            const backgroundImages = [
-                'assets/images/header-bg.jpg',
-                'assets/images/background.jpg', 
-                'assets/images/bg-header.png',
-                'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1974&q=80' // Fallback dari Unsplash
-            ];
-            
-            let currentImageIndex = 0;
-            
-            function loadBackgroundImage() {
-                if (currentImageIndex >= backgroundImages.length) {
-                    // Jika semua gambar gagal dimuat, gunakan pattern
-                    header.classList.add('no-image');
-                    return;
-                }
-                
-                bgImage.src = backgroundImages[currentImageIndex];
-                
-                bgImage.onload = function() {
-                    // Gambar berhasil dimuat
-                    const imageUrl = backgroundImages[currentImageIndex];
-                    header.style.backgroundImage = `
-                        linear-gradient(135deg, rgba(44, 62, 80, 0.8) 0%, rgba(52, 152, 219, 0.8) 100%), 
-                        url('${imageUrl}')
-                    `;
-                    header.classList.add('header-loaded');
-                };
-                
-                bgImage.onerror = function() {
-                    // Gambar gagal dimuat, coba gambar berikutnya
-                    currentImageIndex++;
-                    loadBackgroundImage();
-                };
-            }
-            
-            // Mulai loading background image
-            header.classList.add('header-loading');
-            loadBackgroundImage();
-        });
-    </script>
 </head>
 <body>
     <header class="main-header">
@@ -614,6 +437,3 @@ if (session_status() === PHP_SESSION_NONE) {
             </div>
             <?php unset($_SESSION['flash']); ?>
         <?php endif; ?>
-    </main>
-</body>
-</html>
