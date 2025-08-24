@@ -5,7 +5,7 @@ class AuthController {
     private $user;
 
     public function __construct($db) {
-        session_start();
+        // Hapus session_start() karena sudah dipanggil di file utama
         $this->user = new User($db);
     }
 
