@@ -2,19 +2,17 @@
 
 <div class="login-page">
     <div class="login-container">
-        
-
         <!-- Form login -->
         <div class="login-form">
-            <h2>Log in</h2>
+            <h2>Log in Admin</h2>
 
-            <form action="auth.php?action=login" method="POST">
+            <form action="auth.php?action=login_admin" method="POST">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
                 <!-- Input Email -->
                 <div class="input-group">
                     <i class="fas fa-envelope"></i>
-                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="email" name="email" placeholder="Email Admin" required>
                 </div>
 
                 <!-- Input Password -->
@@ -27,9 +25,9 @@
                 <button type="submit">Log in</button>
             </form>
 
-            <!-- Signup link -->
+            <!-- Link kembali -->
             <div class="signup-link">
-                Belum punya akun? <a href="auth.php?action=register_form">Daftar di sini</a>
+                <a href="auth.php?action=login_form">← Kembali ke Login User</a>
             </div>
         </div>
     </div>
