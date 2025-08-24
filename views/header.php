@@ -95,11 +95,11 @@ if (session_status() === PHP_SESSION_NONE) {
                             <li><a href="index.php?action=stages&type=swasta">Swasta/Perusahaan</a></li>
                         </ul>
                     </li>
-                    <li><a href="kontak.php?action=contacts">📞 Kontak Mitra</a></li>
+                    <li><a href="index.php?action=contacts">📞 Kontak Mitra</a></li>
                     <li><a href="index.php?action=documents">📂 File Dokumen</a></li>
                     <li><a href="index.php?action=partners">🤝 Partner</a></li>
                     <li><a href="index.php?action=create">➕ Tambah Partner</a></li>
-                    <li><a href="index.php?action=schedule">🗓️ Schedule</a></li> <!-- ✅ Tambahan menu baru -->
+                    <li><a href="index.php?action=schedule">🗓️ Schedule</a></li>
                 </ul>
                 <div class="auth-buttons">
                     <a href="loginadm.php?action=admin_login" class="btn-admin">Login Admin</a>
