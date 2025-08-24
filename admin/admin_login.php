@@ -8,7 +8,7 @@ if ($_POST && isset($_POST['email']) && isset($_POST['password'])) {
     
     // Hardcoded admin credentials (simple without database)
     $admin_users = [
-        'sanggapura27@gmail.com' => '12345',
+        'admin@pasker.id' => 'admin123',
         'superadmin@pasker.id' => 'super123',
         'manager@pasker.id' => 'manager123'
     ];
@@ -20,7 +20,7 @@ if ($_POST && isset($_POST['email']) && isset($_POST['password'])) {
             'role' => 'admin'
         ];
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Login berhasil! Selamat datang ' . explode('@', $email)[0]];
-        header('Location: admin_dashboard.php');
+        header('Location: views/dashboard.php');
         exit;
     } else {
         $_SESSION['flash'] = ['type' => 'error', 'message' => 'Email atau password salah!'];
@@ -52,6 +52,26 @@ if ($_POST && isset($_POST['email']) && isset($_POST['password'])) {
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             text-align: center;
             padding: 30px 20px;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            padding: 5px 12px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
         }
 
         .title-container h1 {
@@ -205,11 +225,16 @@ if ($_POST && isset($_POST['email']) && isset($_POST['password'])) {
             .title-container p { font-size: 0.9em; }
             .login-card { padding: 30px 20px; }
             .main-header { padding: 20px; }
+            .back-btn { top: 10px; right: 15px; }
         }
     </style>
 </head>
 <body>
     <header class="main-header">
+        <a href="views/dashboard.php" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        
         <div class="title-container">
             <h1><i class="fas fa-user-shield"></i> Admin Login</h1>
             <p>Portal Jemari 5.0 PaskerID - Panel Administrasi</p>
