@@ -372,7 +372,7 @@ if (session_status() === PHP_SESSION_NONE) {
         <?php if (isset($_SESSION['user'])): ?>
         <div class="top-bar">
             <div class="auth-buttons">
-                <a href="loginadm.php?action=admin_login" class="btn-admin">
+                <a href="admin/admin_login.php?action=admin_login" class="btn-admin">
                     <i class="fas fa-user-shield"></i> Admin Panel
                 </a>
                 <a href="auth.php?action=logout" class="btn-logout">
