@@ -25,7 +25,7 @@ if ($search) {
         .search-box input[type=text] { padding: 5px 10px; width: 200px; }
         .search-box button { padding: 5px 10px; background: #007bff; color: #fff; border: none; cursor: pointer; }
         .search-box button:hover { background: #0056b3; }
-        a.btn { padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 14px; }
+        a.btn, button.btn { padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 14px; border:none; cursor:pointer; }
         .btn-add { background: #28a745; color: white; }
         .btn-edit { background: #ffc107; color: black; }
         .btn-delete { background: #dc3545; color: white; }
@@ -35,6 +35,12 @@ if ($search) {
         th { background: #007bff; color: white; }
         tr:hover { background: #f1f1f1; }
         .icon { width: 20px; vertical-align: middle; margin-right: 5px; }
+
+        /* modal */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; }
+        .modal-content { background:#fff; padding:20px; border-radius:8px; width:400px; }
+        .modal-header { font-size:18px; margin-bottom:10px; }
+        .close { float:right; cursor:pointer; font-weight:bold; }
     </style>
 </head>
 <body>
@@ -71,11 +77,37 @@ if ($search) {
                 <td><?= $row['tanggal'] ?></td>
                 <td><a href="<?= $row['file_path'] ?>" class="btn btn-download" download>Download</a></td>
                 <td>
-                    <a href="dokumen_edit.php?id=<?= $row['id'] ?>" class="btn btn-edit">Edit</a>
+                    <button class="btn btn-edit" onclick="openEditModal(<?= $row['id'] ?>,'<?= htmlspecialchars($row['judul'],ENT_QUOTES) ?>','<?= $row['jenis'] ?>')">Edit</button>
                     <a href="dokumen_delete.php?id=<?= $row['id'] ?>" class="btn btn-delete" onclick="return confirm('Yakin ingin menghapus dokumen ini?')">Delete</a>
                 </td>
             </tr>
         <?php endwhile; ?>
     </table>
+
+    <!-- Modal Edit -->
+    <!-- Modal Edit -->
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
+        <div class="modal-header">Edit Dokumen</div>
+        <form action="dokumen_update.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" id="editId">
+            <label>Judul:</label><br>
+            <input type="text" name="judul" id="editJudul" required><br><br>
+            <label>File (opsional, biarkan kosong jika tidak ganti):</label><br>
+            <input type="file" name="file"><br><br>
+            <button type="submit" class="btn btn-add">Simpan</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModal(id, judul) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editJudul').value = judul;
+    document.getElementById('editModal').style.display = 'flex';
+}
+</script>
+
 </body>
 </html>
