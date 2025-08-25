@@ -34,7 +34,7 @@ $result = $conn->query("SELECT * FROM dokumen $where ORDER BY tanggal DESC");
 <form method="GET" style="margin-top:10px;">
     <input type="text" name="search" placeholder="Cari dokumen..." value="<?= $_GET['search'] ?? '' ?>">
     <button type="submit" class="btn back">Cari</button>
-    <a href="dokumen_user.php" class="btn back">Kembali</a>
+    <a href="\latsar\views\dashboard.php" class="btn back">← Kembali</a>
 </form>
 
 <!-- Tabel Dokumen -->
