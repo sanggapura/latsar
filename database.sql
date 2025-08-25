@@ -63,9 +63,14 @@ CREATE TABLE tahapan_kerjasama (
 
     keterangan TEXT,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    -- Upload file (maksimal 3)
+    file1 VARCHAR(255),
+    file2 VARCHAR(255),
+    file3 VARCHAR(255),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Optional seed admin user (replace hash later):
 -- INSERT INTO users (username, email, password) VALUES ('Admin', 'admin@example.com', '$2y$10$replace_with_real_hash');

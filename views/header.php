@@ -393,7 +393,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <nav class="main-nav">
                 <ul>
                     <li>
-                        <a href="index.php?action=stages">
+                        <a href="\latsar\admin\tahapan\index.php?action=stages">
                             <i class="fas fa-tasks"></i> Tahapan Kerjasama <i class="fas fa-chevron-down"></i>
                         </a>
                         <ul>
