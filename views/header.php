@@ -411,13 +411,13 @@ if (session_status() === PHP_SESSION_NONE) {
                             </a></li>
                         </ul>
                     </li>
-                    <li><a href="\latsar\user\kontak\daftar_kontak.php?action=contacts">
+                    <li><a href="\latsar\admin\kontak\daftar_kontak.php?action=contacts">
                          <i class="fas fa-address-book"></i> Kontak Mitra
                     </a></li>
-                    <li><a href="\latsar\user\dokumen\dokumen_user.php?action=documents">
+                    <li><a href="\latsar\admin\dokumen\dokumen_index.php?action=documents">
                         <i class="fas fa-folder-open"></i> File Dokumen
                     </a></li>
-                    <li><a href="index.php?action=schedule">
+                    <li><a href="\latsar\admin\schedule\schedule.php?action=schedule">
                         <i class="fas fa-calendar-alt"></i> Schedule
                     </a></li>
                 </ul>
