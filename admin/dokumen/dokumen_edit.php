@@ -2,16 +2,37 @@
 $conn = new mysqli("localhost", "root", "", "latsar_db");
 if ($conn->connect_error) die("Koneksi gagal: " . $conn->connect_error);
 
-$id = $_GET['id'];
-$dokumen = $conn->query("SELECT * FROM dokumen WHERE id=$id")->fetch_assoc();
+$id = $_GET['id'] ?? 0;
+$stmt = $conn->prepare("SELECT * FROM dokumen WHERE id=?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$dokumen = $stmt->get_result()->fetch_assoc();
 
-if ($_POST) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $judul = $_POST['judul'];
-    $jenis = $_POST['jenis'];
     $tanggal = $_POST['tanggal'];
 
-    $stmt = $conn->prepare("UPDATE dokumen SET judul=?, jenis=?, tanggal=? WHERE id=?");
-    $stmt->bind_param("sssi", $judul, $jenis, $tanggal, $id);
+    // jika ganti file
+    if (!empty($_FILES['file']['name'])) {
+        $targetDir = "uploads/";
+        $fileName = time() . "_" . basename($_FILES["file"]["name"]);
+        $targetFile = $targetDir . $fileName;
+        $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
+        if (in_array($fileType, ["doc","docx"])) $jenis = "word";
+        elseif (in_array($fileType, ["xls","xlsx"])) $jenis = "excel";
+        elseif ($fileType == "pdf") $jenis = "pdf";
+        else die("Format tidak didukung!");
+
+        move_uploaded_file($_FILES["file"]["tmp_name"], $targetFile);
+
+        $stmt = $conn->prepare("UPDATE dokumen SET judul=?, jenis=?, tanggal=?, file_path=? WHERE id=?");
+        $stmt->bind_param("ssssi", $judul, $jenis, $tanggal, $targetFile, $id);
+    } else {
+        $stmt = $conn->prepare("UPDATE dokumen SET judul=?, tanggal=? WHERE id=?");
+        $stmt->bind_param("ssi", $judul, $tanggal, $id);
+    }
+
     $stmt->execute();
     header("Location: dokumen_index.php");
     exit;
@@ -19,26 +40,20 @@ if ($_POST) {
 ?>
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Edit Dokumen</title>
-</head>
+<head><title>Edit Dokumen</title></head>
 <body>
 <h2>Edit Dokumen</h2>
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
     <label>Judul</label><br>
     <input type="text" name="judul" value="<?= htmlspecialchars($dokumen['judul']) ?>" required><br><br>
-
-    <label>Jenis</label><br>
-    <select name="jenis" required>
-        <option value="word" <?= $dokumen['jenis']=='word'?'selected':'' ?>>Word</option>
-        <option value="excel" <?= $dokumen['jenis']=='excel'?'selected':'' ?>>Excel</option>
-        <option value="pdf" <?= $dokumen['jenis']=='pdf'?'selected':'' ?>>PDF</option>
-    </select><br><br>
 
     <label>Tanggal</label><br>
     <input type="date" name="tanggal" value="<?= $dokumen['tanggal'] ?>" required><br><br>
 
-    <button type="submit">Update</button>
+    <label>Ganti File (opsional)</label><br>
+    <input type="file" name="file"><br><br>
+
+    <button type="submit">Simpan Perubahan</button>
     <a href="dokumen_index.php">Kembali</a>
 </form>
 </body>
