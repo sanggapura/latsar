@@ -39,37 +39,34 @@ CREATE TABLE schedules (
 );
 
 -- table tahapan kerja sama
-CREATE TABLE tahapan_kerjasama (
+CREATE TABLE mitra (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama_mitra VARCHAR(255) NOT NULL,
     jenis_mitra ENUM('Kementerian/Lembaga', 'Pemerintah Daerah', 'Mitra Pembangunan', 'Swasta/Perusahaan') NOT NULL,
     sumber_usulan VARCHAR(255),
-
-    status_mou ENUM('Signed', 'Not Available', 'Drafting/In Progress') DEFAULT 'Not Available',
+    status_mou ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
     nomor_mou VARCHAR(500),
     tanggal_mou DATE,
-    ruang_lingkup_mou TEXT,
-
-    status_pelaksanaan ENUM('Implemented', 'In Progress', 'Not Yet') DEFAULT 'Not Yet',
-    rencana_pertemuan VARCHAR(255),
-    rencana_kolaborasi TEXT,
-    status_progres TEXT,
+    ruang_lingkup_mou TEXT, -- 1000 char
+    status_pelaksanaan ENUM('Implemented', 'In Progress', 'Not Yet'),
+    rencana_pertemuan DATE,
+    rencana_kolaborasi VARCHAR(1000),
+    status_progres VARCHAR(1000),
     tindak_lanjut TEXT,
+    status_pks ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
+    ruanglingkup_pks TEXT,
+    nomor_kb_pks VARCHAR(500),
+    tanggal_kb_pks DATE,
+    keterangan VARCHAR(255),
 
-    status_pks ENUM('Signed', 'Not Available', 'Drafting/In Progress') DEFAULT 'Not Available',
-    ruang_lingkup_pks TEXT,
-    nomor_pks VARCHAR(500),
-    tanggal_pks DATE,
-
-    keterangan TEXT,
-
-    -- Upload file (maksimal 3)
+    -- Upload file (max 3)
     file1 VARCHAR(255),
     file2 VARCHAR(255),
     file3 VARCHAR(255),
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 -- Optional seed admin user (replace hash later):
