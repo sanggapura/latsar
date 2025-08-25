@@ -171,7 +171,7 @@ $admin = $_SESSION['admin'];
                 <h3>Tahapan</h3>
             </a>
             
-            <a href="admin_add_file.php" class="menu-card green">
+            <a href="dokumen\dokumen_index.php" class="menu-card green">
                 <i class="fas fa-folder-plus"></i>
                 <h3>Tambah File</h3>
             </a>
@@ -181,9 +181,9 @@ $admin = $_SESSION['admin'];
                 <h3>Tambah Schedule</h3>
             </a>
             
-            <a href="index.php" class="menu-card red">
-                <i class="fas fa-home"></i>
-                <h3>Portal Utama</h3>
+            <a href="kontak\daftar_kontak.php" class="menu-card red">
+                <i class="fas fa-address-book"></i>
+                <h3>Kontak</h3>
             </a>
         </div>
     </div>

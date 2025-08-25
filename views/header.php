@@ -411,8 +411,8 @@ if (session_status() === PHP_SESSION_NONE) {
                             </a></li>
                         </ul>
                     </li>
-                    <li><a href="index.php?action=contacts">
-                        <i class="fas fa-address-book"></i> Kontak Mitra
+                    <li><a href="user\kontak\daftar_kontak.php?action=contacts">
+                         <i class="fas fa-address-book"></i> Kontak Mitra
                     </a></li>
                     <li><a href="index.php?action=documents">
                         <i class="fas fa-folder-open"></i> File Dokumen
