@@ -231,9 +231,6 @@ if ($_POST && isset($_POST['email']) && isset($_POST['password'])) {
 </head>
 <body>
     <header class="main-header">
-        <a href="views/dashboard.php" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
         
         <div class="title-container">
             <h1><i class="fas fa-user-shield"></i> Admin Login</h1>
