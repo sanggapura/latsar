@@ -139,7 +139,7 @@ if (session_status() === PHP_SESSION_NONE) {
             transition: all 0.3s ease;
             box-shadow: 0 3px 10px rgba(255, 107, 53, 0.3);
             white-space: nowrap;
-            width: 200px;
+            width: 280px;
             height: 44px;
             justify-content: center;
             text-align: center;
@@ -416,9 +416,6 @@ if (session_status() === PHP_SESSION_NONE) {
                     </a></li>
                     <li><a href="index.php?action=documents">
                         <i class="fas fa-folder-open"></i> File Dokumen
-                    </a></li>
-                    <li><a href="index.php?action=partners">
-                        <i class="fas fa-handshake"></i> Partner
                     </a></li>
                     <li><a href="index.php?action=schedule">
                         <i class="fas fa-calendar-alt"></i> Schedule
