@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ext = strtolower(pathinfo($_FILES["file$i"]['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, $allowed_ext)) {
                     $new_name = time() . "_$i." . $ext;
-                    $target = "uploads/" . $new_name;
+                    $target = "upload/" . $new_name;
                     move_uploaded_file($_FILES["file$i"]['tmp_name'], $target);
                     $files[$i] = $target;
                 } else {

@@ -1,5 +1,52 @@
-<?php include "../../views/header.php"; ?>
-<?php include "db.php"; ?>
+<?php
+include "../../views/header.php";
+include "db.php";
+
+// ====== BAGIAN HANDLER DOWNLOAD ======
+if (isset($_GET['id']) && isset($_GET['file'])) {
+    $id = intval($_GET['id']);
+    $fileField = $_GET['file']; // contoh: file1, file2, file3
+
+    if (!in_array($fileField, ['file1','file2','file3'])) {
+        die("Akses ditolak.");
+    }
+
+    // Ambil data file dari DB
+    $stmt = $conn->prepare("SELECT $fileField FROM tahapan_kerjasama WHERE id=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($filename);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($filename) {
+        $filePath = __DIR__ . "latsar/admin/tahapan/upload/" . $filename;
+
+        if (file_exists($filePath)) {
+            if (!isset($_GET['download'])) {
+                // Mode view
+                header("Content-Type: application/octet-stream");
+                readfile($filePath);
+                exit;
+            } else {
+                // Mode download
+                header("Content-Description: File Transfer");
+                header("Content-Type: application/octet-stream");
+                header("Content-Disposition: attachment; filename=\"" . basename($filename) . "\"");
+                header("Content-Length: " . filesize($filePath));
+                flush();
+                readfile($filePath);
+                exit;
+            }
+        } else {
+            die("⚠ File tidak ditemukan di server.");
+        }
+    } else {
+        die("⚠ File tidak ada di database.");
+    }
+}
+?>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <div class="container mt-4">
@@ -109,10 +156,10 @@
                                             <div>
                                                 <?= getFileIcon($filename); ?>
                                             </div>
-                                            <small class="d-block mt-1 text-truncate"><?= $filename; ?></small>
+                                            <small class="d-block mt-1 text-truncate"><?= basename($filename); ?></small>
                                             <div class="mt-2 d-flex justify-content-center gap-2">
-                                                <a href="upload/<?= $filename ?>" target="_blank" class="btn btn-info btn-sm">👁 Lihat</a>
-                                                <a href="upload/<?= $filename ?>" download class="btn btn-success btn-sm">📥</a>
+                                                <a href="?id=<?= $row['id']; ?>&file=file<?= $i ?>" target="_blank" class="btn btn-info btn-sm">👁 Lihat</a>
+                                                <a href="?id=<?= $row['id']; ?>&file=file<?= $i ?>&download=1" class="btn btn-success btn-sm">📥</a>
                                             </div>
                                         </div>
                                     <?php endif; ?>
