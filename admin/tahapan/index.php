@@ -38,6 +38,20 @@
         </thead>
         <tbody>
         <?php
+        function getFileIcon($filename) {
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            switch($ext) {
+                case "pdf": return '<i class="bi bi-file-earmark-pdf text-danger" style="font-size:40px;"></i>';
+                case "doc":
+                case "docx": return '<i class="bi bi-file-earmark-word text-primary" style="font-size:40px;"></i>';
+                case "xls":
+                case "xlsx": return '<i class="bi bi-file-earmark-excel text-success" style="font-size:40px;"></i>';
+                case "ppt":
+                case "pptx": return '<i class="bi bi-file-earmark-ppt text-warning" style="font-size:40px;"></i>';
+                default: return '<i class="bi bi-file-earmark-text text-secondary" style="font-size:40px;"></i>';
+            }
+        }
+
         $result = $conn->query("SELECT * FROM tahapan_kerjasama ORDER BY id DESC");
         if ($result && $result->num_rows > 0):
             $no = 1;
@@ -86,18 +100,30 @@
                             <p><strong>Nomor KB/PKS:</strong> <?= htmlspecialchars($row['nomor_kb_pks']); ?></p>
                             <p><strong>Tanggal KB/PKS:</strong> <?= htmlspecialchars($row['tanggal_kb_pks']); ?></p>
                             <p><strong>Keterangan:</strong><br><?= nl2br(htmlspecialchars($row['keterangan'])); ?></p>
-                            <p><strong>File:</strong><br>
+                            <p><strong>File:</strong></p>
+                            <div class="d-flex flex-wrap gap-3">
                                 <?php for ($i=1;$i<=3;$i++): ?>
                                     <?php if (!empty($row["file$i"])): ?>
-                                        <a href="upload/<?= htmlspecialchars($row["file$i"]); ?>" target="_blank">📥 File<?= $i ?></a><br>
+                                        <?php $filename = htmlspecialchars($row["file$i"]); ?>
+                                        <div class="card p-2 text-center" style="width:150px;">
+                                            <div>
+                                                <?= getFileIcon($filename); ?>
+                                            </div>
+                                            <small class="d-block mt-1 text-truncate"><?= $filename; ?></small>
+                                            <div class="mt-2 d-flex justify-content-center gap-2">
+                                                <a href="upload/<?= $filename ?>" target="_blank" class="btn btn-info btn-sm">👁 Lihat</a>
+                                                <a href="upload/<?= $filename ?>" download class="btn btn-success btn-sm">📥</a>
+                                            </div>
+                                        </div>
                                     <?php endif; ?>
                                 <?php endfor; ?>
-                            </p>
+                            </div>
                         </div>
                         <div class="modal-footer">
-                            <a href="edit.php?id=<?= $row['id']; ?>" class="btn btn-sm btn-warning">✏ Edit</a>
-                            <a href="delete.php?id=<?= $row['id']; ?>" onclick="return confirm('Yakin hapus?')" class="btn btn-sm btn-danger">🗑 Hapus</a>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            <a href="edit.php?id=<?= $row['id']; ?>" class="btn btn-primary btn-sm">✏ Edit</a>
+                            <a href="export_excel.php?id=<?= $row['id']; ?>" class="btn btn-primary btn-sm">📊 Export Excel</a>
+                            <a href="delete.php?id=<?= $row['id']; ?>" onclick="return confirm('Yakin hapus?')" class="btn btn-primary btn-sm">🗑 Hapus</a>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Tutup</button>
                         </div>
                     </div>
                 </div>
@@ -126,3 +152,4 @@ document.getElementById('filterJenis').addEventListener('change', function() {
     });
 });
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">

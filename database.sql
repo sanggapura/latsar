@@ -39,7 +39,7 @@ CREATE TABLE schedules (
 );
 
 -- table tahapan kerja sama
-CREATE TABLE mitra (
+CREATE TABLE tahapan_kerjasama (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama_mitra VARCHAR(255) NOT NULL,
     jenis_mitra ENUM('Kementerian/Lembaga', 'Pemerintah Daerah', 'Mitra Pembangunan', 'Swasta/Perusahaan') NOT NULL,
