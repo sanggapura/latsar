@@ -26,48 +26,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tanggal_kb_pks      = $_POST['tanggal_kb_pks'];
         $keterangan          = $_POST['keterangan'];
 
-        // Upload file (max 3)
-        $allowed_ext = ['pdf','doc','docx','xls','xlsx'];
-        $files = [];
-        for ($i=1; $i<=3; $i++) {
-            if (!empty($_FILES["file$i"]['name'])) {
-                $ext = strtolower(pathinfo($_FILES["file$i"]['name'], PATHINFO_EXTENSION));
-                if (in_array($ext, $allowed_ext)) {
-                    $new_name = time() . "_$i." . $ext;
-                    $target = "upload/" . $new_name;
-                    move_uploaded_file($_FILES["file$i"]['tmp_name'], $target);
-                    $files[$i] = $target;
-                } else {
-                    $errors["file$i"] = "Format file tidak valid (hanya pdf, word, excel)";
-                    $files[$i] = null;
-                }
-            } else {
-                $files[$i] = null;
-            }
-        }
-
-        if (count($errors) === 0) {
-            $sql = "INSERT INTO tahapan_kerjasama 
+        $sql = "INSERT INTO tahapan_kerjasama 
                 (nama_mitra, jenis_mitra, sumber_usulan, status_mou, nomor_mou, tanggal_mou, ruang_lingkup_mou, status_pelaksanaan, 
                 rencana_pertemuan, rencana_kolaborasi, status_progres, tindak_lanjut, status_pks, ruanglingkup_pks, nomor_kb_pks, 
-                tanggal_kb_pks, keterangan, file1, file2, file3)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                tanggal_kb_pks, keterangan)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssss", 
-                $nama_mitra, $jenis_mitra, $sumber_usulan, $status_mou, $nomor_mou, $tanggal_mou, $ruang_lingkup_mou, $status_pelaksanaan, 
-                $rencana_pertemuan, $rencana_kolaborasi, $status_progres, $tindak_lanjut, $status_pks, $ruanglingkup_pks, $nomor_kb_pks, 
-                $tanggal_kb_pks, $keterangan, $files[1], $files[2], $files[3]
-            );
-            $stmt->execute();
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param(
+            "sssssssssssssssss", 
+            $nama_mitra, $jenis_mitra, $sumber_usulan, $status_mou, $nomor_mou, $tanggal_mou, $ruang_lingkup_mou, $status_pelaksanaan, 
+            $rencana_pertemuan, $rencana_kolaborasi, $status_progres, $tindak_lanjut, $status_pks, $ruanglingkup_pks, $nomor_kb_pks, 
+            $tanggal_kb_pks, $keterangan
+        );
+        $stmt->execute();
 
-            header("Location: /latsar/admin/tahapan/index.php");
-            exit();
-        }
+        header("Location: /latsar/admin/tahapan/index.php");
+        exit();
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -83,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="card shadow-sm">
         <div class="card-body">
           <h3 class="mb-4">Form Input Mitra</h3>
-          <form method="POST" enctype="multipart/form-data">
+          <form method="POST">
 
             <!-- Nama Mitra -->
             <div class="mb-3">
@@ -192,15 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <input type="text" name="keterangan" class="form-control">
             </div>
 
-            <!-- Upload -->
-            <div class="mb-3">
-              <label class="form-label">Upload File (max 3)</label>
-              <input type="file" name="file1" class="form-control <?php echo isset($errors['file1'])?'is-invalid':''; ?>" accept=".pdf,.doc,.docx,.xls,.xlsx"><br>
-              <input type="file" name="file2" class="form-control <?php echo isset($errors['file2'])?'is-invalid':''; ?>" accept=".pdf,.doc,.docx,.xls,.xlsx"><br>
-              <input type="file" name="file3" class="form-control <?php echo isset($errors['file3'])?'is-invalid':''; ?>" accept=".pdf,.doc,.docx,.xls,.xlsx">
-              <div class="invalid-feedback"><?php echo $errors['file1'] ?? $errors['file2'] ?? $errors['file3'] ?? ''; ?></div>
-            </div>
-
             <button type="submit" class="btn btn-primary">Simpan</button>
           </form>
         </div>
@@ -232,7 +201,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <li><b>Nomor KB/PKS:</b> Isi jika ada.</li>
             <li><b>Tanggal KB/PKS:</b> Isi tanggal penandatanganan.</li>
             <li><b>Keterangan:</b> Catatan tambahan.</li>
-            <li><b>Upload File:</b> Maksimal 3 file (PDF, Word, Excel).</li>
             <li>Kolom merah = ada kesalahan input.</li>
           </ul>
         </div>

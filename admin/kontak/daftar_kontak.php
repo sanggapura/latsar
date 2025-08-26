@@ -24,14 +24,26 @@ include __DIR__ . "/../../views/header.php";
   .search-box i{position:absolute; top:50%; left:8px; transform:translateY(-50%); color:#888; font-size:14px;}
 
   .card-container{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; padding:0 20px 40px;}
-  .contact-card{background:#fff; border:1px solid #e0e0e0; border-radius:16px; padding:20px;
+  .contact-card{background:#fff; border:1px solid #e0e0e0; border-radius:16px; padding:20px; position:relative;
                 box-shadow:0 6px 16px rgba(0,0,0,0.1); transition:.2s;}
   .contact-card:hover{transform:translateY(-5px); box-shadow:0 10px 20px rgba(0,0,0,0.15);}
   .contact-card h3{margin:0 0 8px; font-size:18px; color:#111;}
   .contact-card p{margin:4px 0; font-size:14px; color:#555;}
   .card-actions{margin-top:12px;}
 
-  /* Modal dengan fade */
+  /* Tombol WA di pojok kanan atas */
+  .btn-wa {
+    position:absolute;
+    top:10px; right:10px;
+    background:#25D366; color:#fff;
+    padding:6px 10px; border-radius:50%;
+    font-size:15px; cursor:pointer;
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);
+    transition:0.2s;
+  }
+  .btn-wa:hover { background:#1ebe5c; }
+
+  /* Modal */
   .modal {
     display: flex;
     position: fixed;
@@ -40,19 +52,12 @@ include __DIR__ . "/../../views/header.php";
     width: 100%; height: 100%;
     justify-content: center;
     align-items: center;
-
     opacity: 0;
     background: rgba(0,0,0,0);
     pointer-events: none;
     transition: opacity 0.3s ease, background 0.3s ease;
   }
-
-  .modal.show {
-    opacity: 1;
-    background: rgba(0,0,0,0.5);
-    pointer-events: all;
-  }
-
+  .modal.show { opacity: 1; background: rgba(0,0,0,0.5); pointer-events: all; }
   .modal-content {
     background:#fff;
     padding:20px;
@@ -63,11 +68,7 @@ include __DIR__ . "/../../views/header.php";
     transform: translateY(-20px);
     transition: transform 0.3s ease;
   }
-
-  .modal.show .modal-content {
-    transform: translateY(0);
-  }
-
+  .modal.show .modal-content { transform: translateY(0); }
   .close{float:right; font-size:20px; cursor:pointer; color:#333;}
 </style>
 
@@ -84,10 +85,16 @@ include __DIR__ . "/../../views/header.php";
 <div class="card-container" id="kontakContainer">
   <?php while($row = $result->fetch_assoc()): ?>
     <div class="contact-card">
+      <!-- Tombol WA -->
+      <span class="btn-wa" onclick="shareWA(this)"><i class="fab fa-whatsapp"></i></span>
+
       <h3><?= htmlspecialchars($row['nama_perusahaan']) ?></h3>
       <p><strong>PIC:</strong> <?= htmlspecialchars($row['nama_pic']) ?></p>
       <p><strong>No. Telp:</strong> <?= htmlspecialchars($row['nomor_telp']) ?></p>
-      <p><strong>Email:</strong> <?= htmlspecialchars($row['alamat_email']) ?></p>
+      <?php if (!empty($row['alamat_email'])): ?>
+        <p><strong>Email:</strong> <?= htmlspecialchars($row['alamat_email']) ?></p>
+      <?php endif; ?>
+
       <div class="card-actions">
         <a href="javascript:void(0)" class="btn edit" onclick="openEdit(<?= $row['id'] ?>)">Edit</a>
         <a href="delete_kontak.php?id=<?= $row['id'] ?>" class="btn delete"
@@ -188,6 +195,28 @@ include __DIR__ . "/../../views/header.php";
     const modal=document.getElementById("editModal");
     modal.classList.remove("show");
     setTimeout(()=>{ document.getElementById("modalBody").innerHTML=""; }, 300);
+  }
+
+  // tombol WA copy (nama + pic + link wa + email bila ada)
+  function shareWA(el){
+    let card = el.closest(".contact-card");
+    let nama = card.querySelector("h3").innerText;
+    let pic = card.querySelector("p:nth-of-type(1)").innerText.replace("PIC: ","").trim();
+    let telp = card.querySelector("p:nth-of-type(2)").innerText.replace("No. Telp: ","").trim();
+    let emailEl = card.querySelector("p:nth-of-type(3)");
+    let email = emailEl ? emailEl.innerText.replace("Email: ","").trim() : "";
+
+    let nomorWA = telp.replace(/^0/, "62");
+    let linkWA = "https://wa.me/" + nomorWA;
+
+    let text = `*${nama}* - ${pic}\n${linkWA}`;
+    if(email) text += `\n${email}`;
+
+    navigator.clipboard.writeText(text).then(()=>{
+      alert("✅ Data WA berhasil disalin:\n" + text);
+    }).catch(err=>{
+      alert("❌ Gagal menyalin: " + err);
+    });
   }
 </script>
 

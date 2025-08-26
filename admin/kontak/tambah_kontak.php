@@ -6,10 +6,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_GET['ajax'])) {
   $nama_perusahaan = $conn->real_escape_string($_POST['nama_perusahaan']);
   $nama_pic        = $conn->real_escape_string($_POST['nama_pic']);
   $no_telp         = $conn->real_escape_string($_POST['nomor_telp']);
-  $email           = $conn->real_escape_string($_POST['alamat_email']);
+  $email           = isset($_POST['alamat_email']) && $_POST['alamat_email'] !== "" 
+                       ? $conn->real_escape_string($_POST['alamat_email']) 
+                       : NULL;
 
   $sql = "INSERT INTO kontak_mitra (nama_perusahaan, nama_pic, nomor_telp, alamat_email)
-          VALUES ('$nama_perusahaan','$nama_pic','$no_telp','$email')";
+          VALUES ('$nama_perusahaan','$nama_pic','$no_telp'," . 
+          ($email !== NULL ? "'$email'" : "NULL") . ")";
 
   header('Content-Type: application/json');
   if ($conn->query($sql)) {
@@ -65,8 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_GET['ajax'])) {
       <label>No Telp</label>
       <input type="text" name="nomor_telp" required>
 
-      <label>Email</label>
-      <input type="email" name="alamat_email" required>
+      <label>Email (opsional)</label>
+      <input type="email" name="alamat_email" placeholder="contoh@mail.com">
 
       <button type="submit" class="btn save">💾 Simpan</button>
     </form>
