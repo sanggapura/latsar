@@ -20,9 +20,47 @@ include __DIR__ . "/../../views/header.php";
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-  body { font-family: Arial, sans-serif; }
-  .container { max-width: 1000px; margin: 20px auto; }
-  #calendar { max-width: 900px; margin: auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+  body { 
+    font-family: Arial, sans-serif; 
+    background: #f5f7fa; /* abu lembut */
+  }
+
+  .container { 
+    max-width: 800px;   /* perkecil container */
+    margin: 20px auto; 
+    text-align: center;
+  }
+
+  #calendar { 
+    max-width: 700px;   /* perkecil calendar */
+    margin: auto; 
+    background: #ffffff; 
+    padding: 15px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 2px solid #ff6b35; /* bingkai warna oranye */
+  }
+
+  /* header bulan */
+  .fc-toolbar-title {
+    color: #ff6b35;
+    font-weight: bold;
+  }
+
+  /* hari minggu */
+  .fc-day-sun {
+    background-color: #fff5f2; 
+  }
+
+  /* event */
+  .fc-event {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px;
+    padding: 2px 4px;
+  }
 </style>
 
 <script>
