@@ -67,6 +67,16 @@ CREATE TABLE mitra (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+    -- table dokumen
+CREATE TABLE dokumen (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    judul VARCHAR(255) NOT NULL,
+    jenis ENUM('word','excel','pdf') NOT NULL,
+    tanggal DATE NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 
 -- Optional seed admin user (replace hash later):

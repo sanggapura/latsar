@@ -371,15 +371,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <header class="main-header">
         <?php if (isset($_SESSION['user'])): ?>
         <div class="top-bar">
-            <div class="auth-buttons">
-                <a href="admin/admin_login.php?action=admin_login" class="btn-admin">
-                    <i class="fas fa-user-shield"></i> Admin Panel
-                </a>
-                <a href="auth.php?action=logout" class="btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> 
-                    Logout (<?= htmlspecialchars($_SESSION['user']['username'] ?? $_SESSION['user']['email'] ?? 'user') ?>)
-                </a>
-            </div>
+            
         </div>
         <?php endif; ?>
 
@@ -394,22 +386,8 @@ if (session_status() === PHP_SESSION_NONE) {
                 <ul>
                     <li>
                         <a href="\latsar\admin\tahapan\index.php?action=stages">
-                            <i class="fas fa-tasks"></i> Tahapan Kerjasama <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-tasks"></i> Tahapan Kerjasama 
                         </a>
-                        <ul>
-                            <li><a href="index.php?action=stages&type=kementerian">
-                                <i class="fas fa-building"></i> Kementerian/Lembaga
-                            </a></li>
-                            <li><a href="index.php?action=stages&type=daerah">
-                                <i class="fas fa-map-marker-alt"></i> Pemerintah Daerah
-                            </a></li>
-                            <li><a href="index.php?action=stages&type=mitra">
-                                <i class="fas fa-users"></i> Mitra Pembangunan
-                            </a></li>
-                            <li><a href="index.php?action=stages&type=swasta">
-                                <i class="fas fa-industry"></i> Swasta/Perusahaan
-                            </a></li>
-                        </ul>
                     </li>
                     <li><a href="\latsar\admin\kontak\daftar_kontak.php?action=contacts">
                          <i class="fas fa-address-book"></i> Kontak Mitra

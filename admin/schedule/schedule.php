@@ -1,6 +1,6 @@
 <?php
 // koneksi database
-$conn = new mysqli("localhost", "root", "", "latsar_db");
+$conn = new mysqli("localhost", "root", "", "jejaring_db");
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }

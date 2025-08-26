@@ -1,5 +1,5 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "latsar_db");
+$conn = new mysqli("localhost", "root", "", "jejaring_db");
 $res = $conn->query("SELECT * FROM schedules");
 $events = [];
 while($row = $res->fetch_assoc()){

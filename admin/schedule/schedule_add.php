@@ -1,5 +1,5 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "latsar_db");
+$conn = new mysqli("localhost", "root", "", "jejaring_db");
 $title = $_POST['title'];
 $start = $_POST['start'];
 $end   = $_POST['end'];
