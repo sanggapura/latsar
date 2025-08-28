@@ -20,7 +20,7 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
     $stmt->close();
 
     if ($filename) {
-        $filePath = __DIR__ . "latsar/admin/tahapan/upload/" . $filename;
+        $filePath = __DIR__ . "/upload/" . $filename;
 
         if (file_exists($filePath)) {
             if (!isset($_GET['download'])) {
@@ -184,6 +184,14 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
     background-color: #6c757d;
 }
 
+.badge-info-custom {
+    background-color: #0dcaf0;
+}
+
+.badge-dark-custom {
+    background-color: #212529;
+}
+
 .modal-header-custom {
     background-color: #2c5aa0;
     color: white;
@@ -252,7 +260,6 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                     <option value="Kementerian/Lembaga">Kementerian/Lembaga</option>
                     <option value="Pemerintah Daerah">Pemerintah Daerah</option>
                     <option value="Mitra Pembangunan">Mitra Pembangunan</option>
-                    <option value="Swasta/Perusahaan">Swasta/Perusahaan</option>
                 </select>
             </div>
             <div class="col-md-4 text-end">
@@ -269,7 +276,9 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                 <th>No</th>
                 <th>Nama Mitra</th>
                 <th>Jenis Mitra</th>
-                <th>Tanggal MoU</th>
+                <th>Status Kesepahaman</th>
+                <th>Tanggal Kesepahaman</th>
+                <th>Status PKS</th>
             </tr>
         </thead>
         <tbody>
@@ -292,12 +301,32 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
         if ($result && $result->num_rows > 0):
             $no = 1;
             while ($row = $result->fetch_assoc()):
+                // Badge untuk jenis mitra
                 switch($row['jenis_mitra']){
                     case "Kementerian/Lembaga": $badge = "success-custom"; break;
                     case "Pemerintah Daerah": $badge = "primary-custom"; break;
                     case "Mitra Pembangunan": $badge = "warning-custom"; break;
-                    case "Swasta/Perusahaan": $badge = "secondary-custom"; break;
-                    default: $badge = "dark";
+                    case "Asosiasi": $badge = "info-custom"; break;
+                    case "Perusahaan": $badge = "secondary-custom"; break;
+                    case "Universitas": $badge = "dark-custom"; break;
+                    case "Job Portal": $badge = "primary-custom"; break;
+                    default: $badge = "secondary-custom";
+                }
+                
+                // Badge untuk status kesepahaman
+                switch($row['status_kesepahaman']){
+                    case "Signed": $badge_kesepahaman = "success-custom"; break;
+                    case "Not Available": $badge_kesepahaman = "secondary-custom"; break;
+                    case "Drafting/In Progress": $badge_kesepahaman = "warning-custom"; break;
+                    default: $badge_kesepahaman = "secondary-custom";
+                }
+                
+                // Badge untuk status PKS
+                switch($row['status_pks']){
+                    case "Signed": $badge_pks = "success-custom"; break;
+                    case "Not Available": $badge_pks = "secondary-custom"; break;
+                    case "Drafting/In Progress": $badge_pks = "warning-custom"; break;
+                    default: $badge_pks = "secondary-custom";
                 }
         ?>
             <tr onclick="showModal<?= $row['id']; ?>()" style="cursor:pointer;" 
@@ -306,7 +335,9 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                 <td><?= $no++; ?></td>
                 <td><?= htmlspecialchars($row['nama_mitra']); ?></td>
                 <td><span class="badge badge-custom badge-<?= $badge; ?>"><?= htmlspecialchars($row['jenis_mitra']); ?></span></td>
-                <td><?= htmlspecialchars($row['tanggal_mou']); ?></td>
+                <td><span class="badge badge-custom badge-<?= $badge_kesepahaman; ?>"><?= htmlspecialchars($row['status_kesepahaman'] ?: 'Tidak Ada'); ?></span></td>
+                <td><?= htmlspecialchars($row['tanggal_kesepahaman'] ?: '-'); ?></td>
+                <td><span class="badge badge-custom badge-<?= $badge_pks; ?>"><?= htmlspecialchars($row['status_pks'] ?: 'Tidak Ada'); ?></span></td>
             </tr>
 
             <!-- Modal Detail -->
@@ -321,6 +352,10 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
+                                        <label class="fw-bold text-muted">Nama Mitra:</label>
+                                        <p><?= htmlspecialchars($row['nama_mitra']); ?></p>
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="fw-bold text-muted">Jenis Mitra:</label>
                                         <p><?= htmlspecialchars($row['jenis_mitra']); ?></p>
                                     </div>
@@ -328,70 +363,113 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                                         <label class="fw-bold text-muted">Sumber Usulan:</label>
                                         <p><?= htmlspecialchars($row['sumber_usulan']); ?></p>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Status MoU:</label>
-                                        <p><?= htmlspecialchars($row['status_mou']); ?></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Nomor MoU:</label>
-                                        <p><?= htmlspecialchars($row['nomor_mou']); ?></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Tanggal MoU:</label>
-                                        <p><?= htmlspecialchars($row['tanggal_mou']); ?></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Status Pelaksanaan:</label>
-                                        <p><?= htmlspecialchars($row['status_pelaksanaan']); ?></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Rencana Pertemuan:</label>
-                                        <p><?= htmlspecialchars($row['rencana_pertemuan']); ?></p>
-                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
+                                        <label class="fw-bold text-muted">Status Kesepahaman:</label>
+                                        <p><?= htmlspecialchars($row['status_kesepahaman']); ?></p>
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="fw-bold text-muted">Status PKS:</label>
                                         <p><?= htmlspecialchars($row['status_pks']); ?></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Nomor KB/PKS:</label>
-                                        <p><?= htmlspecialchars($row['nomor_kb_pks']); ?></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold text-muted">Tanggal KB/PKS:</label>
-                                        <p><?= htmlspecialchars($row['tanggal_kb_pks']); ?></p>
                                     </div>
                                 </div>
                             </div>
                             
                             <hr class="my-4">
+                            <h6 class="text-primary">Informasi Kesepahaman</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Nomor Kesepahaman:</label>
+                                        <p><?= htmlspecialchars($row['nomor_kesepahaman']); ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Tanggal Kesepahaman:</label>
+                                        <p><?= htmlspecialchars($row['tanggal_kesepahaman']); ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Status Pelaksanaan Kesepahaman:</label>
+                                        <p><?= htmlspecialchars($row['status_pelaksanaan_kesepahaman']); ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Rencana Pertemuan:</label>
+                                        <p><?= htmlspecialchars($row['rencana_pertemuan_kesepahaman']); ?></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Ruang Lingkup Kesepahaman:</label>
+                                        <p><?= nl2br(htmlspecialchars($row['ruanglingkup_kesepahaman'])); ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Rencana Kolaborasi:</label>
+                                        <p><?= nl2br(htmlspecialchars($row['rencana_kolaborasi_kesepahaman'])); ?></p>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div class="row">
                                 <div class="col-12">
                                     <div class="mb-3">
-                                        <label class="fw-bold text-muted">Ruang Lingkup MoU:</label>
-                                        <p><?= nl2br(htmlspecialchars($row['ruang_lingkup_mou'])); ?></p>
+                                        <label class="fw-bold text-muted">Status/Progres Kesepahaman:</label>
+                                        <p><?= nl2br(htmlspecialchars($row['status_progres_kesepahaman'])); ?></p>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="fw-bold text-muted">Rencana Kolaborasi:</label>
-                                        <p><?= nl2br(htmlspecialchars($row['rencana_kolaborasi'])); ?></p>
+                                        <label class="fw-bold text-muted">Tindak Lanjut Kesepahaman:</label>
+                                        <p><?= nl2br(htmlspecialchars($row['tindaklanjut_kesepahaman'])); ?></p>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="fw-bold text-muted">Status/Progres:</label>
-                                        <p><?= nl2br(htmlspecialchars($row['status_progres'])); ?></p>
+                                        <label class="fw-bold text-muted">Keterangan Kesepahaman:</label>
+                                        <p><?= htmlspecialchars($row['keterangan_kesepahaman']); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h6 class="text-success">Informasi PKS</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Nomor PKS:</label>
+                                        <p><?= htmlspecialchars($row['nomor_pks']); ?></p>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="fw-bold text-muted">Tindak Lanjut:</label>
-                                        <p><?= nl2br(htmlspecialchars($row['tindak_lanjut'])); ?></p>
+                                        <label class="fw-bold text-muted">Tanggal PKS:</label>
+                                        <p><?= htmlspecialchars($row['tanggal_pks']); ?></p>
                                     </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Status Pelaksanaan PKS:</label>
+                                        <p><?= htmlspecialchars($row['status_pelaksanaan_pks']); ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Rencana Pertemuan PKS:</label>
+                                        <p><?= htmlspecialchars($row['rencana_pertemuan_pks']); ?></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="fw-bold text-muted">Ruang Lingkup PKS:</label>
                                         <p><?= nl2br(htmlspecialchars($row['ruanglingkup_pks'])); ?></p>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="fw-bold text-muted">Keterangan:</label>
-                                        <p><?= nl2br(htmlspecialchars($row['keterangan'])); ?></p>
+                                        <label class="fw-bold text-muted">Status/Progres PKS:</label>
+                                        <p><?= nl2br(htmlspecialchars($row['status_progres_pks'])); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Tindak Lanjut PKS:</label>
+                                        <p><?= nl2br(htmlspecialchars($row['tindaklanjut_pks'])); ?></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="fw-bold text-muted">Keterangan PKS:</label>
+                                        <p><?= htmlspecialchars($row['keterangan_pks']); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -445,7 +523,7 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
             </script>
 
         <?php endwhile; else: ?>
-            <tr><td colspan="4" class="text-center text-muted py-5">Belum ada data mitra</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-5">Belum ada data mitra</td></tr>
         <?php endif; ?>
         </tbody>
     </table>
@@ -455,24 +533,12 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
 <script>
 // Search functionality
 document.getElementById('searchInput').addEventListener('keyup', function() {
-    let searchValue = this.value.toLowerCase();
-    document.querySelectorAll('#mitraTable tbody tr').forEach(function(row) {
-        let nama = row.getAttribute('data-nama');
-        if (nama) {
-            row.style.display = nama.includes(searchValue) ? '' : 'none';
-        }
-    });
+    applyFilters();
 });
 
 // Filter functionality
 document.getElementById('filterJenis').addEventListener('change', function() {
-    let filterValue = this.value;
-    document.querySelectorAll('#mitraTable tbody tr').forEach(function(row) {
-        let jenis = row.getAttribute('data-jenis');
-        if (jenis) {
-            row.style.display = (filterValue === '' || jenis === filterValue) ? '' : 'none';
-        }
-    });
+    applyFilters();
 });
 
 // Combined search and filter
@@ -486,13 +552,18 @@ function applyFilters() {
         
         if (nama && jenis) {
             let matchesSearch = nama.includes(searchValue);
-            let matchesFilter = (filterValue === '' || jenis === filterValue);
+            let matchesFilter = true;
+            
+            if (filterValue === 'Mitra Pembangunan') {
+                // Ketika Mitra Pembangunan dipilih, tampilkan semua subcategory
+                matchesFilter = ['Asosiasi', 'Perusahaan', 'Universitas', 'Job Portal'].includes(jenis);
+            } else {
+                // Normal filter logic
+                matchesFilter = (filterValue === '' || jenis === filterValue);
+            }
+            
             row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
         }
     });
 }
-
-// Update event listeners to use combined filter
-document.getElementById('searchInput').addEventListener('keyup', applyFilters);
-document.getElementById('filterJenis').addEventListener('change', applyFilters);
 </script>

@@ -38,33 +38,48 @@ CREATE TABLE schedules (
     end DATETIME NOT NULL
 );
 
--- table tahapan kerja sama
 CREATE TABLE tahapan_kerjasama (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama_mitra VARCHAR(255) NOT NULL,
-    jenis_mitra ENUM('Kementerian/Lembaga', 'Pemerintah Daerah', 'Mitra Pembangunan', 'Swasta/Perusahaan') NOT NULL,
+    jenis_mitra ENUM(
+        'Kementerian/Lembaga',
+        'Pemerintah Daerah',
+        'Asosiasi',
+        'Perusahaan',
+        'Universitas',
+        'Job Portal'
+    ) NOT NULL,
     sumber_usulan VARCHAR(255),
-    status_mou ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
-    nomor_mou VARCHAR(500),
-    tanggal_mou DATE,
-    ruang_lingkup_mou TEXT, -- 1000 char
-    status_pelaksanaan ENUM('Implemented', 'In Progress', 'Not Yet'),
-    rencana_pertemuan DATE,
-    rencana_kolaborasi VARCHAR(1000),
-    status_progres VARCHAR(1000),
-    tindak_lanjut TEXT,
+
+    -- Kesepahaman
+    status_kesepahaman ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
+    nomor_kesepahaman TEXT,
+    tanggal_kesepahaman DATE,
+    ruanglingkup_kesepahaman TEXT,
+    status_pelaksanaan_kesepahaman ENUM('Implemented', 'In Progress', 'Not Yet'),
+    rencana_pertemuan_kesepahaman DATE,
+    rencana_kolaborasi_kesepahaman TEXT,
+    status_progres_kesepahaman TEXT,
+    tindaklanjut_kesepahaman TEXT,
+    keterangan_kesepahaman TEXT,
+
+    -- PKS
     status_pks ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
+    nomor_pks TEXT,
+    tanggal_pks DATE,
     ruanglingkup_pks TEXT,
-    nomor_kb_pks VARCHAR(500),
-    tanggal_kb_pks DATE,
-    keterangan VARCHAR(255),
+    status_pelaksanaan_pks ENUM('Implemented', 'In Progress', 'Not Yet'),
+    rencana_pertemuan_pks DATE,
+    status_progres_pks TEXT,
+    tindaklanjut_pks TEXT,
+    keterangan_pks TEXT,
 
     -- Upload file (max 3)
     file1 VARCHAR(255),
     file2 VARCHAR(255),
-    file3 VARCHAR(255),
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
     -- table dokumen
