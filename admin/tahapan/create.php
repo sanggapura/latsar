@@ -6,11 +6,16 @@ ini_set('display_errors', 1);
 
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (empty($_POST['nama_mitra'])) $errors['nama_mitra'] = "Nama Mitra wajib diisi";
-    if (empty($_POST['jenis_mitra'])) $errors['jenis_mitra'] = "Jenis Mitra wajib dipilih";
+    // Validasi input utama
+    if (empty(trim($_POST['nama_mitra']))) {
+        $errors['nama_mitra'] = "Nama Mitra wajib diisi";
+    }
+    if (empty(trim($_POST['jenis_mitra']))) {
+        $errors['jenis_mitra'] = "Jenis Mitra wajib dipilih";
+    }
 
+    // Jika lolos validasi
     if (count($errors) === 0) {
-        // Tambahkan field tandai ke dalam query
         $sql = "INSERT INTO tahapan_kerjasama 
             (nama_mitra, jenis_mitra, sumber_usulan, tandai,
              status_kesepahaman, nomor_kesepahaman, tanggal_kesepahaman, ruanglingkup_kesepahaman, status_pelaksanaan_kesepahaman,
@@ -20,22 +25,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
         $stmt = $conn->prepare($sql);
-        
-        // Set tandai = 1 jika checkbox dicentang, 0 jika tidak
-        $tandai = isset($_POST['tandai']) ? 1 : 0;
-        
-        $stmt->bind_param(
-            "sssississsssssssssssss",
-            $_POST['nama_mitra'], $_POST['jenis_mitra'], $_POST['sumber_usulan'], $tandai,
-            $_POST['status_kesepahaman'], $_POST['nomor_kesepahaman'], $_POST['tanggal_kesepahaman'], $_POST['ruanglingkup_kesepahaman'], $_POST['status_pelaksanaan_kesepahaman'],
-            $_POST['rencana_pertemuan_kesepahaman'], $_POST['rencana_kolaborasi_kesepahaman'], $_POST['status_progres_kesepahaman'], $_POST['tindaklanjut_kesepahaman'], $_POST['keterangan_kesepahaman'],
-            $_POST['status_pks'], $_POST['nomor_pks'], $_POST['tanggal_pks'], $_POST['ruanglingkup_pks'], $_POST['status_pelaksanaan_pks'],
-            $_POST['rencana_pertemuan_pks'], $_POST['status_progres_pks'], $_POST['tindaklanjut_pks'], $_POST['keterangan_pks']
-        );
-        $stmt->execute();
 
-        header("Location: index.php");
-        exit();
+        $tandai = isset($_POST['tandai']) ? 1 : 0;
+
+        $stmt->bind_param(
+            "sssissssssssssssssssss",
+            $_POST['nama_mitra'], 
+            $_POST['jenis_mitra'], 
+            $_POST['sumber_usulan'], 
+            $tandai,
+            $_POST['status_kesepahaman'], 
+            $_POST['nomor_kesepahaman'], 
+            $_POST['tanggal_kesepahaman'], 
+            $_POST['ruanglingkup_kesepahaman'], 
+            $_POST['status_pelaksanaan_kesepahaman'],
+            $_POST['rencana_pertemuan_kesepahaman'], 
+            $_POST['rencana_kolaborasi_kesepahaman'], 
+            $_POST['status_progres_kesepahaman'], 
+            $_POST['tindaklanjut_kesepahaman'], 
+            $_POST['keterangan_kesepahaman'],
+            $_POST['status_pks'], 
+            $_POST['nomor_pks'], 
+            $_POST['tanggal_pks'], 
+            $_POST['ruanglingkup_pks'], 
+            $_POST['status_pelaksanaan_pks'],
+            $_POST['rencana_pertemuan_pks'], 
+            $_POST['status_progres_pks'], 
+            $_POST['tindaklanjut_pks'], 
+            $_POST['keterangan_pks']
+        );
+
+        if ($stmt->execute()) {
+            header("Location: index.php");
+            exit();
+        } else {
+            echo "<div class='alert alert-danger'>Terjadi kesalahan: " . htmlspecialchars($stmt->error) . "</div>";
+        }
     }
 }
 
@@ -69,26 +94,28 @@ include __DIR__ . "/../../views/header.php";
 <body class="bg-light">
 <div class="container py-4">
   <h3 class="mb-4">Form Input Mitra</h3>
-  <form method="POST">
+  <form method="POST" novalidate>
 
     <!-- Nama Mitra -->
     <div class="mb-3">
-      <label class="form-label">Nama Mitra</label>
-      <input type="text" name="nama_mitra" class="form-control <?php echo isset($errors['nama_mitra']) ? 'is-invalid' : ''; ?>" value="<?= htmlspecialchars($_POST['nama_mitra'] ?? ''); ?>">
+      <label class="form-label">Nama Mitra <span class="text-danger">*</span></label>
+      <input type="text" name="nama_mitra" class="form-control <?php echo isset($errors['nama_mitra']) ? 'is-invalid' : ''; ?>" 
+             value="<?= htmlspecialchars($_POST['nama_mitra'] ?? ''); ?>" required>
       <div class="invalid-feedback"><?php echo $errors['nama_mitra'] ?? ''; ?></div>
     </div>
 
     <!-- Jenis Mitra -->
     <div class="mb-3">
-      <label class="form-label">Jenis Mitra</label>
-      <select name="jenis_mitra" class="form-select <?php echo isset($errors['jenis_mitra']) ? 'is-invalid' : ''; ?>">
+      <label class="form-label">Jenis Mitra <span class="text-danger">*</span></label>
+      <select name="jenis_mitra" class="form-select <?php echo isset($errors['jenis_mitra']) ? 'is-invalid' : ''; ?>" required>
         <option value="">--Pilih--</option>
-        <option <?= ($_POST['jenis_mitra'] ?? '') == 'Kementerian/Lembaga' ? 'selected' : ''; ?>>Kementerian/Lembaga</option>
-        <option <?= ($_POST['jenis_mitra'] ?? '') == 'Pemerintah Daerah' ? 'selected' : ''; ?>>Pemerintah Daerah</option>
-        <option <?= ($_POST['jenis_mitra'] ?? '') == 'Asosiasi' ? 'selected' : ''; ?>>Asosiasi</option>
-        <option <?= ($_POST['jenis_mitra'] ?? '') == 'Perusahaan' ? 'selected' : ''; ?>>Perusahaan</option>
-        <option <?= ($_POST['jenis_mitra'] ?? '') == 'Universitas' ? 'selected' : ''; ?>>Universitas</option>
-        <option <?= ($_POST['jenis_mitra'] ?? '') == 'Job Portal' ? 'selected' : ''; ?>>Job Portal</option>
+        <?php 
+          $opsi = ['Kementerian/Lembaga','Pemerintah Daerah','Asosiasi','Perusahaan','Universitas','Job Portal'];
+          foreach ($opsi as $o) {
+              $sel = (($_POST['jenis_mitra'] ?? '') == $o) ? 'selected' : '';
+              echo "<option $sel>$o</option>";
+          }
+        ?>
       </select>
       <div class="invalid-feedback"><?php echo $errors['jenis_mitra'] ?? ''; ?></div>
     </div>
@@ -99,17 +126,19 @@ include __DIR__ . "/../../views/header.php";
       <input type="text" name="sumber_usulan" class="form-control" value="<?= htmlspecialchars($_POST['sumber_usulan'] ?? ''); ?>">
     </div>
 
-
-
     <!-- ================= KESEPAHAMAN ================= -->
     <h5 class="mt-4">Kesepahaman</h5>
     <div class="mb-3">
       <label class="form-label">Status Kesepahaman</label>
       <select name="status_kesepahaman" class="form-select">
         <option value="">--Pilih--</option>
-        <option <?= ($_POST['status_kesepahaman'] ?? '') == 'Signed' ? 'selected' : ''; ?>>Signed</option>
-        <option <?= ($_POST['status_kesepahaman'] ?? '') == 'Not Available' ? 'selected' : ''; ?>>Not Available</option>
-        <option <?= ($_POST['status_kesepahaman'] ?? '') == 'Drafting/In Progress' ? 'selected' : ''; ?>>Drafting/In Progress</option>
+        <?php 
+          $opsi = ['Signed','Not Available','Drafting/In Progress'];
+          foreach ($opsi as $o) {
+              $sel = (($_POST['status_kesepahaman'] ?? '') == $o) ? 'selected' : '';
+              echo "<option $sel>$o</option>";
+          }
+        ?>
       </select>
     </div>
     <div class="mb-3">
@@ -128,9 +157,13 @@ include __DIR__ . "/../../views/header.php";
       <label class="form-label">Status Pelaksanaan</label>
       <select name="status_pelaksanaan_kesepahaman" class="form-select">
         <option value="">--Pilih--</option>
-        <option <?= ($_POST['status_pelaksanaan_kesepahaman'] ?? '') == 'Implemented' ? 'selected' : ''; ?>>Implemented</option>
-        <option <?= ($_POST['status_pelaksanaan_kesepahaman'] ?? '') == 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
-        <option <?= ($_POST['status_pelaksanaan_kesepahaman'] ?? '') == 'Not Yet' ? 'selected' : ''; ?>>Not Yet</option>
+        <?php 
+          $opsi = ['Implemented','In Progress','Not Yet'];
+          foreach ($opsi as $o) {
+              $sel = (($_POST['status_pelaksanaan_kesepahaman'] ?? '') == $o) ? 'selected' : '';
+              echo "<option $sel>$o</option>";
+          }
+        ?>
       </select>
     </div>
     <div class="mb-3">
@@ -174,9 +207,13 @@ include __DIR__ . "/../../views/header.php";
         <label class="form-label">Status PKS</label>
         <select name="status_pks" class="form-select">
           <option value="">--Pilih--</option>
-          <option <?= ($_POST['status_pks'] ?? '') == 'Signed' ? 'selected' : ''; ?>>Signed</option>
-          <option <?= ($_POST['status_pks'] ?? '') == 'Not Available' ? 'selected' : ''; ?>>Not Available</option>
-          <option <?= ($_POST['status_pks'] ?? '') == 'Drafting/In Progress' ? 'selected' : ''; ?>>Drafting/In Progress</option>
+          <?php 
+            $opsi = ['Signed','Not Available','Drafting/In Progress'];
+            foreach ($opsi as $o) {
+                $sel = (($_POST['status_pks'] ?? '') == $o) ? 'selected' : '';
+                echo "<option $sel>$o</option>";
+            }
+          ?>
         </select>
       </div>
       <div class="mb-3">
@@ -195,9 +232,13 @@ include __DIR__ . "/../../views/header.php";
         <label class="form-label">Status Pelaksanaan PKS</label>
         <select name="status_pelaksanaan_pks" class="form-select">
           <option value="">--Pilih--</option>
-          <option <?= ($_POST['status_pelaksanaan_pks'] ?? '') == 'Implemented' ? 'selected' : ''; ?>>Implemented</option>
-          <option <?= ($_POST['status_pelaksanaan_pks'] ?? '') == 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
-          <option <?= ($_POST['status_pelaksanaan_pks'] ?? '') == 'Not Yet' ? 'selected' : ''; ?>>Not Yet</option>
+          <?php 
+            $opsi = ['Implemented','In Progress','Not Yet'];
+            foreach ($opsi as $o) {
+                $sel = (($_POST['status_pelaksanaan_pks'] ?? '') == $o) ? 'selected' : '';
+                echo "<option $sel>$o</option>";
+            }
+          ?>
         </select>
       </div>
       <div class="mb-3">
@@ -227,13 +268,5 @@ include __DIR__ . "/../../views/header.php";
 
 <!-- Include Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-
-<script>
-// Maintain form state after page reload  
-document.addEventListener('DOMContentLoaded', function() {
-    // No need for checkbox state maintenance anymore
-});
-</script>
-
 </body>
 </html>
