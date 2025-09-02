@@ -238,6 +238,20 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
     width: 90%;
 }
 
+/* Style untuk tanda seru */
+.marked-indicator {
+    color: #0d6efd;
+    font-size: 1.2rem;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
 @media (max-width: 768px) {
     .modal-xl-custom {
         max-width: 95%;
@@ -333,7 +347,12 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                 data-nama="<?= strtolower($row['nama_mitra']); ?>"
                 data-jenis="<?= $row['jenis_mitra']; ?>">
                 <td><?= $no++; ?></td>
-                <td><?= htmlspecialchars($row['nama_mitra']); ?></td>
+                <td>
+                    <?= htmlspecialchars($row['nama_mitra']); ?>
+                    <?php if ($row['tandai'] == 1): ?>
+                        <i class="bi bi-exclamation-circle-fill marked-indicator" title="Data Ditandai"></i>
+                    <?php endif; ?>
+                </td>
                 <td><span class="badge badge-custom badge-<?= $badge; ?>"><?= htmlspecialchars($row['jenis_mitra']); ?></span></td>
                 <td><span class="badge badge-custom badge-<?= $badge_kesepahaman; ?>"><?= htmlspecialchars($row['status_kesepahaman'] ?: 'Tidak Ada'); ?></span></td>
                 <td><?= htmlspecialchars($row['tanggal_kesepahaman'] ?: '-'); ?></td>
@@ -345,10 +364,22 @@ if (isset($_GET['id']) && isset($_GET['file'])) {
                 <div class="modal-dialog modal-xl-custom modal-dialog-scrollable">
                     <div class="modal-content modal-content-custom">
                         <div class="modal-header modal-header-custom">
-                            <h5 class="modal-title">Detail Mitra: <?= htmlspecialchars($row['nama_mitra']); ?></h5>
+                            <h5 class="modal-title">
+                                Detail Mitra: <?= htmlspecialchars($row['nama_mitra']); ?>
+                                <?php if ($row['tandai'] == 1): ?>
+                                    <i class="bi bi-exclamation-circle-fill text-warning ms-2" title="Data Ditandai"></i>
+                                <?php endif; ?>
+                            </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
+                            <?php if ($row['tandai'] == 1): ?>
+                                <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    <div>Data ini telah ditandai sebagai prioritas atau perhatian khusus</div>
+                                </div>
+                            <?php endif; ?>
+                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
