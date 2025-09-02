@@ -38,49 +38,41 @@ CREATE TABLE schedules (
     end DATETIME NOT NULL
 );
 
+-- Tahapan Kerjasama
 CREATE TABLE tahapan_kerjasama (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama_mitra VARCHAR(255) NOT NULL,
-    jenis_mitra ENUM(
-        'Kementerian/Lembaga',
-        'Pemerintah Daerah',
-        'Asosiasi',
-        'Perusahaan',
-        'Universitas',
-        'Job Portal'
-    ) NOT NULL,
+    jenis_mitra VARCHAR(100) NOT NULL,
     sumber_usulan VARCHAR(255),
 
+    tandai TINYINT(1) DEFAULT 0,
+
     -- Kesepahaman
-    status_kesepahaman ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
-    nomor_kesepahaman TEXT,
+    status_kesepahaman VARCHAR(100),
+    nomor_kesepahaman VARCHAR(100),
     tanggal_kesepahaman DATE,
     ruanglingkup_kesepahaman TEXT,
-    status_pelaksanaan_kesepahaman ENUM('Implemented', 'In Progress', 'Not Yet'),
+    status_pelaksanaan_kesepahaman VARCHAR(100),
     rencana_pertemuan_kesepahaman DATE,
     rencana_kolaborasi_kesepahaman TEXT,
     status_progres_kesepahaman TEXT,
     tindaklanjut_kesepahaman TEXT,
-    keterangan_kesepahaman TEXT,
+    keterangan_kesepahaman VARCHAR(255),
 
     -- PKS
-    status_pks ENUM('Signed', 'Not Available', 'Drafting/In Progress'),
-    nomor_pks TEXT,
+    status_pks VARCHAR(100),
+    nomor_pks VARCHAR(100),
     tanggal_pks DATE,
     ruanglingkup_pks TEXT,
-    status_pelaksanaan_pks ENUM('Implemented', 'In Progress', 'Not Yet'),
+    status_pelaksanaan_pks VARCHAR(100),
     rencana_pertemuan_pks DATE,
     status_progres_pks TEXT,
     tindaklanjut_pks TEXT,
-    keterangan_pks TEXT,
+    keterangan_pks VARCHAR(255),
 
-    -- Upload file (max 3)
-    file1 VARCHAR(255),
-    file2 VARCHAR(255),
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
     -- table dokumen
 CREATE TABLE dokumen (
