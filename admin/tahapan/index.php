@@ -1,54 +1,67 @@
 <?php
+// =================================================================
+// FILE: index.php (VERSI FINAL - DIBUAT ULANG)
+// LOKASI: sanggapura/latsar/latsar-..../admin/tahapan/index.php
+// =================================================================
+
+// Sertakan header dan koneksi database
 include "../../views/header.php";
 include "db.php";
 
-// Menampilkan pesan notifikasi
+// 1. LOGIKA UNTUK MENAMPILKAN PESAN NOTIFIKASI
 $message = '';
 $messageType = '';
-
 if (isset($_GET['success'])) {
-    // ... (Logika notifikasi tidak berubah)
+    switch($_GET['success']) {
+        case 'created': $message = 'Data mitra berhasil ditambahkan!'; $messageType = 'success'; break;
+        case 'updated': $message = 'Data mitra berhasil diperbarui!'; $messageType = 'success'; break;
+        case 'deleted': $message = 'Data mitra berhasil dihapus!'; $messageType = 'success'; break;
+    }
 }
 if (isset($_GET['error'])) {
-    // ... (Logika notifikasi tidak berubah)
+    switch($_GET['error']) {
+        case 'invalid_id': $message = 'ID tidak valid atau tidak ditemukan!'; $messageType = 'danger'; break;
+        case 'not_found': $message = 'Data tidak ditemukan!'; $messageType = 'warning'; break;
+    }
 }
 
-// =================================================================
-// FUNGSI BARU YANG LEBIH PINTAR UNTUK MENCOCOKKAN SEMUA JENIS MITRA
-// =================================================================
+// 2. FUNGSI BANTUAN (HELPER FUNCTIONS)
+/**
+ * Fungsi cerdas untuk menentukan warna badge berdasarkan kata kunci.
+ * Ini akan menangani semua variasi dan data kosong.
+ */
 function getBadgeClass($type, $value) {
-    if ($type === 'jenis') {
-        if (empty($value)) return "secondary";
-        $value_lower = strtolower($value); // Ubah ke huruf kecil agar tidak case-sensitive
+    $safe_value = trim($value ?? '');
+    if (empty($safe_value)) return "secondary";
 
+    if ($type === 'jenis') {
+        $value_lower = strtolower($safe_value);
         if (str_contains($value_lower, 'kementerian') || str_contains($value_lower, 'lembaga')) return 'success';
         if (str_contains($value_lower, 'pemerintah')) return 'primary';
         if (str_contains($value_lower, 'swasta') || str_contains($value_lower, 'perusahaan')) return 'dark';
         if (str_contains($value_lower, 'portal')) return 'secondary';
         if (str_contains($value_lower, 'universitas')) return 'warning';
         if (str_contains($value_lower, 'asosiasi') || str_contains($value_lower, 'komunitas')) return 'info';
-        
-        return 'secondary'; // Default untuk jenis lain
+        return 'secondary'; // Warna default jika tidak ada yang cocok
     }
 
     if ($type === 'status') {
-         if (empty($value)) return "secondary";
-         $status_map = [
-            "Signed" => "success", "Not Available" => "secondary", "Drafting/In Progress" => "warning", 
-            "Implemented" => "success", "In Progress" => "warning", "Not Yet" => "secondary"
-         ];
-         return $status_map[$value] ?? 'secondary';
+         $status_map = ["Signed" => "success", "Not Available" => "secondary", "Drafting/In Progress" => "warning", "Implemented" => "success", "In Progress" => "warning", "Not Yet" => "secondary"];
+         return $status_map[$safe_value] ?? 'secondary';
     }
-
     return 'secondary';
 }
 
-function formatDate($date) {
-    return $date ? date('d M Y', strtotime($date)) : '-';
-}
+function formatDate($date) { return $date ? date('d M Y', strtotime($date)) : '-'; }
+function formatValue($value) { return htmlspecialchars(trim($value) ?: '-'); }
 
-function formatValue($value) {
-    return htmlspecialchars($value ?: '-');
+// 3. AMBIL SEMUA DATA DARI DATABASE
+$result = $conn->query("SELECT * FROM tahapan_kerjasama ORDER BY tandai DESC, id DESC");
+$all_data = [];
+if ($result && $result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $all_data[] = $row;
+    }
 }
 ?>
 
@@ -59,8 +72,8 @@ function formatValue($value) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Mitra Kerjasama</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --bs-blue-dark: #0a3d62; --bs-blue-light: #3c6382; --bs-gray: #f5f7fa; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bs-gray); }
@@ -79,16 +92,11 @@ function formatValue($value) {
 <body>
 <div class="container my-5">
     <div class="main-container">
-        <div class="text-center mb-4">
-            <h1 class="page-title"><i class="bi bi-diagram-3-fill"></i> Manajemen Tahapan Kerjasama</h1>
-        </div>
-
+        <div class="text-center mb-4"><h1 class="page-title"><i class="bi bi-diagram-3-fill"></i> Manajemen Tahapan Kerjasama</h1></div>
         <?php if ($message): ?>
-            <div class="alert alert-<?= $messageType; ?> alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+            <div class="alert alert-<?= $messageType; ?> alert-dismissible fade show" role="alert"><?= htmlspecialchars($message); ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
         <?php endif; ?>
+        
         <?php
         $stats = $conn->query("SELECT COUNT(*) as total, SUM(tandai) as prioritas FROM tahapan_kerjasama")->fetch_assoc();
         ?>
@@ -117,16 +125,9 @@ function formatValue($value) {
 
         <div class="table-responsive">
             <table class="table table-hover align-middle">
-                 <thead>
-                    <tr><th>No</th><th>Nama Mitra</th><th>Jenis</th><th>Status MoU</th><th>Status PKS</th><th>Aksi</th></tr>
-                </thead>
+                <thead><tr><th>No</th><th>Nama Mitra</th><th>Jenis</th><th>Status MoU</th><th>Status PKS</th><th>Aksi</th></tr></thead>
                 <tbody id="mitraTableBody">
-                <?php
-                $result = $conn->query("SELECT * FROM tahapan_kerjasama ORDER BY tandai DESC, id DESC");
-                if ($result && $result->num_rows > 0):
-                    $no = 1;
-                    while ($row = $result->fetch_assoc()):
-                ?>
+                <?php if (!empty($all_data)): $no = 1; foreach ($all_data as $row): ?>
                     <tr data-bs-toggle="modal" data-bs-target="#detailModal<?= $row['id'] ?>" style="cursor:pointer;" data-nama="<?= strtolower(htmlspecialchars($row['nama_mitra'])) ?>" data-jenis="<?= htmlspecialchars($row['jenis_mitra']) ?>">
                         <td class="text-center fw-bold"><?= $no++ ?></td>
                         <td>
@@ -138,7 +139,7 @@ function formatValue($value) {
                             <?php 
                                 $jenis_mitra = $row['jenis_mitra'];
                                 $badge_class = getBadgeClass('jenis', $jenis_mitra);
-                                $display_text = !empty($jenis_mitra) ? htmlspecialchars($jenis_mitra) : 'N/A';
+                                $display_text = !empty(trim($jenis_mitra)) ? htmlspecialchars($jenis_mitra) : 'N/A';
                             ?>
                             <span class="badge rounded-pill text-bg-<?= $badge_class ?>"><?= $display_text ?></span>
                         </td>
@@ -149,7 +150,7 @@ function formatValue($value) {
                             <a href="delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Anda yakin ingin menghapus data ini?')"><i class="bi bi-trash-fill"></i></a>
                         </td>
                     </tr>
-                <?php endwhile; else: ?>
+                <?php endforeach; else: ?>
                     <tr><td colspan="6" class="text-center p-5">Belum ada data mitra.</td></tr>
                 <?php endif; ?>
                 </tbody>
@@ -157,11 +158,8 @@ function formatValue($value) {
         </div>
     </div>
 </div>
-<?php
-if ($result && $result->num_rows > 0) {
-    $result->data_seek(0);
-    while($row = $result->fetch_assoc()):
-?>
+
+<?php if (!empty($all_data)): foreach ($all_data as $row): ?>
 <div class="modal fade" id="detailModal<?= $row['id'] ?>" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -172,16 +170,17 @@ if ($result && $result->num_rows > 0) {
             <div class="modal-body">
                 <div class="detail-section"><h6><i class="bi bi-building"></i> Informasi Dasar</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Jenis Mitra:</span><br><?= formatValue($row['jenis_mitra']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Sumber Usulan:</span><br><?= formatValue($row['sumber_usulan']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Prioritas:</span><br><?= $row['tandai'] ? 'Ya' : 'Tidak' ?></p></div></div></div>
                 <div class="detail-section"><h6><i class="bi bi-handshake"></i> Tahap Kesepahaman (MoU)</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_kesepahaman']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Rencana Kolaborasi:</span><br><?= nl2br(formatValue($row['rencana_kolaborasi_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_kesepahaman']) ?></p></div></div></div>
-                <div class="detail-section"><h6><i class="bi bi-file-earmark-text"></i> Tahap PKS</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_pks']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_pks']) ?></p></div></div></div>
+                <div class="detail-section"><h6><i class="bi bi-file-earmark-text"></i> Tahap Perjanjian Kerja Sama (PKS)</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_pks']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_pks']) ?></p></div></div></div>
             </div>
-            <div class="modal-footer"><a href="export_excel.php?id=<?= $row['id'] ?>" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</a><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
+            <div class="modal-footer">
+                <a href="export_excel.php?id=<?= $row['id'] ?>" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
         </div>
     </div>
 </div>
-<?php
-    endwhile;
-}
-?>
+<?php endforeach; endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -189,18 +188,24 @@ if ($result && $result->num_rows > 0) {
         const filterJenis = document.getElementById('filterJenis');
         const tableBody = document.getElementById('mitraTableBody');
         const rows = tableBody.getElementsByTagName('tr');
+
         function filterTable() {
             const searchFilter = searchInput.value.toLowerCase();
             const jenisFilter = filterJenis.value;
+
             for (let i = 0; i < rows.length; i++) {
-                if(rows[i].children.length < 2) continue;
+                if(rows[i].children.length < 2) continue; // Skip "no data" row
+                
                 const nama = rows[i].dataset.nama || '';
                 const jenis = rows[i].dataset.jenis || '';
+                
                 const showByName = nama.includes(searchFilter);
                 const showByJenis = jenisFilter === '' || jenis === jenisFilter;
+
                 rows[i].style.display = (showByName && showByJenis) ? '' : 'none';
             }
         }
+
         searchInput.addEventListener('keyup', filterTable);
         filterJenis.addEventListener('change', filterTable);
     });
