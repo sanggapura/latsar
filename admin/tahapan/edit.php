@@ -1,9 +1,9 @@
 <?php
 // =================================================================
-// BAGIAN 1: LOGIKA PHP UNTUK MENGAMBIL DAN MEMPERBARUI DATA
+// FILE: edit.php (VERSI FINAL - TANPA SWASTA & ASOSIASI)
 // =================================================================
-include "db.php"; // Harap pastikan path ke file db.php Anda sudah benar.
 
+include "db.php"; 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -12,7 +12,6 @@ if (!$id || !is_numeric($id)) {
     header("Location: index.php?error=invalid_id");
     exit();
 }
-
 $id = intval($id);
 
 // Ambil data lama dari database
@@ -28,15 +27,9 @@ if (!$data) {
 }
 
 $errors = [];
-// Logika untuk memproses form saat disubmit (UPDATE)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validasi input utama
-    if (empty(trim($_POST['nama_mitra']))) {
-        $errors['nama_mitra'] = "Nama Mitra wajib diisi";
-    }
-    if (empty(trim($_POST['jenis_mitra']))) {
-        $errors['jenis_mitra'] = "Jenis Mitra wajib dipilih";
-    }
+    if (empty(trim($_POST['nama_mitra']))) { $errors['nama_mitra'] = "Nama Mitra wajib diisi"; }
+    if (empty(trim($_POST['jenis_mitra']))) { $errors['jenis_mitra'] = "Jenis Mitra wajib dipilih"; }
 
     if (count($errors) === 0) {
         $sql = "UPDATE tahapan_kerjasama SET 
@@ -47,16 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 rencana_pertemuan_pks=?, status_progres_pks=?, tindaklanjut_pks=?, keterangan_pks=?
                 WHERE id=?";
 
-        $stmt = $conn->prepare($sql);
+        $stmt_update = $conn->prepare($sql);
         $tandai = isset($_POST['tandai']) ? 1 : 0;
 
         foreach ($_POST as $key => $value) {
-            if (empty($value)) {
-                $_POST[$key] = null;
-            }
+            if (empty($value)) { $_POST[$key] = null; }
         }
 
-        $stmt->bind_param(
+        $stmt_update->bind_param(
             "sssisssssssssssssssssssi",
             $_POST['nama_mitra'], $_POST['jenis_mitra'], $_POST['sumber_usulan'], $tandai,
             $_POST['status_kesepahaman'], $_POST['nomor_kesepahaman'], $_POST['tanggal_kesepahaman'],
@@ -69,18 +60,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id
         );
 
-        if ($stmt->execute()) {
+        if ($stmt_update->execute()) {
             header("Location: index.php?success=updated");
             exit();
         } else {
-            $errors['db_error'] = "Gagal memperbarui data: " . htmlspecialchars($stmt->error);
+            $errors['db_error'] = "Gagal memperbarui data: " . htmlspecialchars($stmt_update->error);
         }
     }
 }
 
-// Cek apakah ada data di PKS untuk menentukan visibilitas awal
 $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !empty($data['tanggal_pks']);
-
 ?>
 
 <!DOCTYPE html>
@@ -90,20 +79,14 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Mitra - <?= htmlspecialchars($data['nama_mitra'] ?? '') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bs-blue-dark: #0a3d62; --bs-blue-light: #3c6382; --bs-orange: #f39c12; --bs-gray: #f5f7fa; --bs-gray-dark: #6c757d; --bs-border-color: #dee2e6; }
-        html { scroll-behavior: smooth; }
+        :root { --bs-blue-dark: #0a3d62; --bs-blue-light: #3c6382; --bs-orange: #f39c12; --bs-gray: #f5f7fa; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bs-gray); }
-        .form-card { background-color: white; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); border: none; overflow: hidden; }
-        .form-card-header { background: linear-gradient(135deg, var(--bs-blue-dark) 0%, var(--bs-blue-light) 100%); padding: 2rem; color: white; }
-        .form-section-title { font-weight: 600; color: var(--bs-blue-dark); margin-bottom: 1.5rem; border-bottom: 2px solid var(--bs-blue-light); padding-bottom: 0.5rem; }
-        .form-label { font-weight: 500; color: var(--bs-gray-dark); }
-        .form-control, .form-select { border-radius: 0.5rem; border: 1px solid var(--bs-border-color); padding: 0.75rem 1rem; }
-        .form-control:focus, .form-select:focus { border-color: var(--bs-blue-light); box-shadow: 0 0 0 0.25rem rgba(60, 99, 130, 0.25); }
-        .btn-primary { background-color: var(--bs-blue-light); border-color: var(--bs-blue-light); border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 600; }
-        .btn-warning { background-color: var(--bs-orange); border-color: var(--bs-orange); color: white; }
+        .form-card { background-color: white; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        .form-card-header { background: linear-gradient(135deg, var(--bs-blue-dark) 0%, var(--bs-blue-light) 100%); color: white; }
+        .form-section-title { font-weight: 600; color: var(--bs-blue-dark); border-bottom: 2px solid var(--bs-blue-light); }
     </style>
 </head>
 <body>
@@ -111,13 +94,13 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
         <div class="row justify-content-center">
             <div class="col-lg-11">
                 <div class="card form-card">
-                     <div class="card-header form-card-header text-center">
-                        <h2><i class="bi bi-pencil-square"></i> Edit Mitra Kerjasama</h2>
-                        <p class="mb-0">Perbarui informasi untuk mitra: <strong><?= htmlspecialchars($data['nama_mitra'] ?? '') ?></strong></p>
+                    <div class="card-header form-card-header text-center p-4">
+                        <h2 class="mb-1"><i class="bi bi-pencil-square"></i> Edit Mitra Kerjasama</h2>
+                        <p class="mb-0">Perbarui informasi untuk: <strong><?= htmlspecialchars($data['nama_mitra'] ?? '') ?></strong></p>
                     </div>
                     <div class="card-body p-4 p-md-5">
                         <form method="POST" action="">
-                            <h5 class="form-section-title"><i class="bi bi-building"></i> Informasi Dasar Mitra</h5>
+                            <h5 class="form-section-title pb-2 mb-4"><i class="bi bi-building"></i> Informasi Dasar Mitra</h5>
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6"><label class="form-label">Nama Mitra <span class="text-danger">*</span></label><input type="text" name="nama_mitra" class="form-control" value="<?= htmlspecialchars($data['nama_mitra'] ?? '') ?>" required></div>
                                 <div class="col-md-6"><label class="form-label">Jenis Mitra <span class="text-danger">*</span></label>
@@ -125,10 +108,8 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
                                         <option value="">-- Pilih Jenis --</option>
                                         <option value="Kementerian/Lembaga" <?= ($data['jenis_mitra'] ?? '') == 'Kementerian/Lembaga' ? 'selected' : '' ?>>Kementerian/Lembaga</option>
                                         <option value="Pemerintah Daerah" <?= ($data['jenis_mitra'] ?? '') == 'Pemerintah Daerah' ? 'selected' : '' ?>>Pemerintah Daerah</option>
-                                        <option value="Swasta/Perusahaan" <?= ($data['jenis_mitra'] ?? '') == 'Swasta/Perusahaan' ? 'selected' : '' ?>>Swasta/Perusahaan</option>
                                         <option value="Job Portal" <?= ($data['jenis_mitra'] ?? '') == 'Job Portal' ? 'selected' : '' ?>>Job Portal</option>
                                         <option value="Universitas" <?= ($data['jenis_mitra'] ?? '') == 'Universitas' ? 'selected' : '' ?>>Universitas</option>
-                                        <option value="Asosiasi/Komunitas" <?= ($data['jenis_mitra'] ?? '') == 'Asosiasi/Komunitas' ? 'selected' : '' ?>>Asosiasi/Komunitas</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6"><label class="form-label">Sumber Usulan</label><input type="text" name="sumber_usulan" class="form-control" value="<?= htmlspecialchars($data['sumber_usulan'] ?? '') ?>"></div>
