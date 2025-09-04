@@ -1,6 +1,6 @@
 <?php
 // =================================================================
-// FILE: edit.php (VERSI FINAL - TANPA SWASTA & ASOSIASI)
+// FILE: edit.php (VERSI FINAL - DENGAN SWASTA & ASOSIASI)
 // =================================================================
 
 include "db.php"; 
@@ -108,8 +108,10 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
                                         <option value="">-- Pilih Jenis --</option>
                                         <option value="Kementerian/Lembaga" <?= ($data['jenis_mitra'] ?? '') == 'Kementerian/Lembaga' ? 'selected' : '' ?>>Kementerian/Lembaga</option>
                                         <option value="Pemerintah Daerah" <?= ($data['jenis_mitra'] ?? '') == 'Pemerintah Daerah' ? 'selected' : '' ?>>Pemerintah Daerah</option>
+                                        <option value="Swasta/Perusahaan" <?= ($data['jenis_mitra'] ?? '') == 'Swasta/Perusahaan' ? 'selected' : '' ?>>Swasta/Perusahaan</option>
                                         <option value="Job Portal" <?= ($data['jenis_mitra'] ?? '') == 'Job Portal' ? 'selected' : '' ?>>Job Portal</option>
                                         <option value="Universitas" <?= ($data['jenis_mitra'] ?? '') == 'Universitas' ? 'selected' : '' ?>>Universitas</option>
+                                        <option value="Asosiasi/Komunitas" <?= ($data['jenis_mitra'] ?? '') == 'Asosiasi/Komunitas' ? 'selected' : '' ?>>Asosiasi/Komunitas</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6"><label class="form-label">Sumber Usulan</label><input type="text" name="sumber_usulan" class="form-control" value="<?= htmlspecialchars($data['sumber_usulan'] ?? '') ?>"></div>

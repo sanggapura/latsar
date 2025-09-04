@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Tambah Mitra Baru</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display.swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root { --bs-blue-dark: #0a3d62; --bs-blue-light: #3c6382; --bs-orange: #f39c12; --bs-gray: #f5f7fa; }
@@ -46,8 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <option value="">-- Pilih Jenis --</option>
                             <option value="Kementerian/Lembaga">Kementerian/Lembaga</option>
                             <option value="Pemerintah Daerah">Pemerintah Daerah</option>
+                            <option value="Swasta/Perusahaan">Swasta/Perusahaan</option>
                             <option value="Job Portal">Job Portal</option>
                             <option value="Universitas">Universitas</option>
+                            <option value="Asosiasi/Komunitas">Asosiasi/Komunitas</option>
                         </select>
                     </div>
                     <div class="col-md-6"><label class="form-label">Sumber Usulan</label><input type="text" name="sumber_usulan" class="form-control"></div>

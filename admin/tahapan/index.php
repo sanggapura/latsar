@@ -7,14 +7,40 @@ $message = '';
 $messageType = '';
 
 if (isset($_GET['success'])) {
-    // ... (Logika notifikasi tidak berubah)
+    switch ($_GET['success']) {
+        case 'created':
+            $message = 'Data mitra berhasil ditambahkan!';
+            $messageType = 'success';
+            break;
+        case 'updated':
+            $message = 'Data mitra berhasil diperbarui!';
+            $messageType = 'success';
+            break;
+        case 'deleted':
+            $message = 'Data mitra berhasil dihapus!';
+            $messageType = 'success';
+            break;
+    }
 }
 if (isset($_GET['error'])) {
-    // ... (Logika notifikasi tidak berubah)
+    switch ($_GET['error']) {
+        case 'invalid_id':
+            $message = 'ID tidak valid!';
+            $messageType = 'danger';
+            break;
+        case 'not_found':
+            $message = 'Data tidak ditemukan!';
+            $messageType = 'danger';
+            break;
+        case 'delete_failed':
+            $message = 'Gagal menghapus data!';
+            $messageType = 'danger';
+            break;
+    }
 }
 
 // =================================================================
-// FUNGSI BARU YANG LEBIH PINTAR UNTUK MENCOCOKKAN SEMUA JENIS MITRA
+// FUNGSI UNTUK MENCOCOKKAN SEMUA JENIS MITRA (TERMASUK YANG BARU)
 // =================================================================
 function getBadgeClass($type, $value) {
     if ($type === 'jenis') {
@@ -89,6 +115,7 @@ function formatValue($value) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
+        
         <?php
         $stats = $conn->query("SELECT COUNT(*) as total, SUM(tandai) as prioritas FROM tahapan_kerjasama")->fetch_assoc();
         ?>
@@ -140,7 +167,7 @@ function formatValue($value) {
                             <?php 
                                 $jenis_mitra = $row['jenis_mitra'];
                                 $badge_class = getBadgeClass('jenis', $jenis_mitra);
-                                $display_text = !empty($jenis_mitra) ? htmlspecialchars($jenis_mitra) : 'apa masalahnya ???';
+                                $display_text = !empty($jenis_mitra) ? htmlspecialchars($jenis_mitra) : 'Tidak Diketahui';
                             ?>
                             <span class="badge rounded-pill text-bg-<?= $badge_class ?>"><?= $display_text ?></span>
                         </td>
@@ -159,6 +186,7 @@ function formatValue($value) {
         </div>
     </div>
 </div>
+
 <?php
 if ($result && $result->num_rows > 0) {
     $result->data_seek(0);
@@ -184,6 +212,7 @@ if ($result && $result->num_rows > 0) {
     endwhile;
 }
 ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -204,7 +233,7 @@ if ($result && $result->num_rows > 0) {
                 
                 const showByName = nama.includes(searchFilter);
                 
-                // Filter berdasarkan jenis - menggunakan exact match seperti di create.php dan edit.php
+                // Filter berdasarkan jenis - menggunakan exact match
                 const showByJenis = jenisFilter === '' || jenis === jenisFilter;
                 
                 rows[i].style.display = (showByName && showByJenis) ? '' : 'none';
