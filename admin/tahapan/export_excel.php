@@ -1,6 +1,6 @@
 <?php
 // =================================================================
-// FILE: export_excel.php (VERSI DENGAN LOGIKA KONDISIONAL)
+// FILE: export_excel.php (VERSI LENGKAP DENGAN PERBAIKAN BARIS BARU)
 // =================================================================
 include "db.php";
 
@@ -67,13 +67,37 @@ header("Content-Disposition: attachment; filename=\"$filename\"");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+/**
+ * Memformat nilai sel dengan benar, termasuk menangani baris baru.
+ *
+ * @param mixed $value Nilai dari database.
+ * @param string $field Nama kolom.
+ * @return string Nilai yang sudah diformat.
+ */
 function formatCellValue($value, $field) {
     if ($value === null || $value === '') return '-';
-    switch ($field) {
-        case 'tandai': return $value == 1 ? 'Ya' : 'Tidak';
-        case 'tanggal_kesepahaman': case 'tanggal_pks': case 'rencana_pertemuan_kesepahaman': case 'rencana_pertemuan_pks':
+    
+    // Daftar field yang berpotensi memiliki banyak baris (textarea)
+    $multiline_fields = [
+        'ruanglingkup_kesepahaman', 'rencana_kolaborasi_kesepahaman', 
+        'status_progres_kesepahaman', 'tindaklanjut_kesepahaman',
+        'ruanglingkup_pks', 'status_progres_pks', 'tindaklanjut_pks'
+    ];
+
+    switch (true) {
+        case $field === 'tandai':
+            return $value == 1 ? 'Ya' : 'Tidak';
+            
+        case in_array($field, ['tanggal_kesepahaman', 'tanggal_pks', 'rencana_pertemuan_kesepahaman', 'rencana_pertemuan_pks']):
             return $value ? date('d-m-Y', strtotime($value)) : '-';
-        default: return htmlspecialchars($value);
+            
+        case in_array($field, $multiline_fields):
+            // **PERBAIKAN**: Ganti baris baru (\n) menjadi tag <br> yang dipahami Excel.
+            // Fungsi htmlspecialchars tetap digunakan untuk keamanan data.
+            return nl2br(htmlspecialchars($value));
+            
+        default:
+            return htmlspecialchars($value);
     }
 }
 
@@ -97,7 +121,11 @@ echo '</tr>';
 echo '<tr>';
 foreach ($fieldMappings as $field => $label) {
     $value = formatCellValue($row[$field] ?? '', $field);
-    echo '<td>' . $value . '</td>';
+    // Tambahkan style untuk wrap text pada sel yang mungkin multi-baris
+    $style = in_array($field, ['ruanglingkup_kesepahaman', 'rencana_kolaborasi_kesepahaman', 'status_progres_kesepahaman', 'tindaklanjut_kesepahaman', 'ruanglingkup_pks', 'status_progres_pks', 'tindaklanjut_pks']) 
+             ? 'style="white-space: pre-wrap;"' 
+             : '';
+    echo "<td {$style}>" . $value . "</td>";
 }
 echo '</tr>';
 

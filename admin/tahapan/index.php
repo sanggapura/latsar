@@ -39,13 +39,11 @@ if (isset($_GET['error'])) {
     }
 }
 
-// =================================================================
-// FUNGSI UNTUK MENCOCOKKAN SEMUA JENIS MITRA (TERMASUK YANG BARU)
-// =================================================================
+// FUNGSI UNTUK MENCOCOKKAN SEMUA JENIS MITRA
 function getBadgeClass($type, $value) {
     if ($type === 'jenis') {
         if (empty($value)) return "secondary";
-        $value_lower = strtolower($value); // Ubah ke huruf kecil agar tidak case-sensitive
+        $value_lower = strtolower($value); 
 
         if (str_contains($value_lower, 'kementerian') || str_contains($value_lower, 'lembaga')) return 'success';
         if (str_contains($value_lower, 'pemerintah')) return 'primary';
@@ -54,7 +52,7 @@ function getBadgeClass($type, $value) {
         if (str_contains($value_lower, 'universitas')) return 'warning';
         if (str_contains($value_lower, 'asosiasi') || str_contains($value_lower, 'komunitas')) return 'info';
         
-        return 'secondary'; // Default untuk jenis lain
+        return 'secondary';
     }
 
     if ($type === 'status') {
@@ -175,7 +173,13 @@ function formatValue($value) {
                         <td class="text-center"><span class="badge rounded-pill text-bg-<?= getBadgeClass('status', $row['status_pks']) ?>"><?= htmlspecialchars($row['status_pks'] ?: 'N/A') ?></span></td>
                         <td class="text-center" onclick="event.stopPropagation();">
                             <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-fill"></i></a>
-                            <a href="delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Anda yakin ingin menghapus data ini?')"><i class="bi bi-trash-fill"></i></a>
+                            
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteConfirmModal"
+                                    data-delete-url="delete.php?id=<?= $row['id'] ?>">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
                         </td>
                     </tr>
                 <?php endwhile; else: ?>
@@ -213,9 +217,28 @@ if ($result && $result->num_rows > 0) {
 }
 ?>
 
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle-fill"></i> Konfirmasi Hapus</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Apakah Anda benar-benar yakin ingin menghapus data mitra ini? Proses ini tidak dapat dibatalkan.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <a href="#" id="confirmDeleteBtn" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Ya, Hapus</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Script untuk filter (tidak berubah)
         const searchInput = document.getElementById('searchInput');
         const filterJenis = document.getElementById('filterJenis');
         const tableBody = document.getElementById('mitraTableBody');
@@ -232,8 +255,6 @@ if ($result && $result->num_rows > 0) {
                 const jenis = rows[i].dataset.jenis || '';
                 
                 const showByName = nama.includes(searchFilter);
-                
-                // Filter berdasarkan jenis - menggunakan exact match
                 const showByJenis = jenisFilter === '' || jenis === jenisFilter;
                 
                 rows[i].style.display = (showByName && showByJenis) ? '' : 'none';
@@ -242,6 +263,24 @@ if ($result && $result->num_rows > 0) {
         
         searchInput.addEventListener('keyup', filterTable);
         filterJenis.addEventListener('change', filterTable);
+
+        // TAMBAHAN: Script untuk menangani modal konfirmasi hapus
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        if (deleteConfirmModal) {
+            deleteConfirmModal.addEventListener('show.bs.modal', function (event) {
+                // Tombol yang memicu modal
+                const button = event.relatedTarget;
+                
+                // Ekstrak URL hapus dari atribut data-delete-url
+                const deleteUrl = button.getAttribute('data-delete-url');
+                
+                // Cari tombol "Ya, Hapus" di dalam modal
+                const confirmBtn = deleteConfirmModal.querySelector('#confirmDeleteBtn');
+                
+                // Update atribut href dari tombol "Ya, Hapus" dengan URL yang benar
+                confirmBtn.setAttribute('href', deleteUrl);
+            });
+        }
     });
 </script>
 </body>

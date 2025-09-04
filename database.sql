@@ -39,39 +39,43 @@ CREATE TABLE schedules (
 );
 
 -- Tahapan Kerjasama
-CREATE TABLE tahapan_kerjasama (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nama_mitra VARCHAR(255) NOT NULL,
-    jenis_mitra VARCHAR(100) NOT NULL,
-    sumber_usulan VARCHAR(255),
-
-    tandai TINYINT(1) DEFAULT 0,
-
-    -- Kesepahaman
-    status_kesepahaman VARCHAR(100),
-    nomor_kesepahaman VARCHAR(100),
-    tanggal_kesepahaman DATE,
-    ruanglingkup_kesepahaman TEXT,
-    status_pelaksanaan_kesepahaman VARCHAR(100),
-    rencana_pertemuan_kesepahaman DATE,
-    rencana_kolaborasi_kesepahaman TEXT,
-    status_progres_kesepahaman TEXT,
-    tindaklanjut_kesepahaman TEXT,
-    keterangan_kesepahaman VARCHAR(255),
-
-    -- PKS
-    status_pks VARCHAR(100),
-    nomor_pks VARCHAR(100),
-    tanggal_pks DATE,
-    ruanglingkup_pks TEXT,
-    status_pelaksanaan_pks VARCHAR(100),
-    rencana_pertemuan_pks DATE,
-    status_progres_pks TEXT,
-    tindaklanjut_pks TEXT,
-    keterangan_pks VARCHAR(255),
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE `tahapan_kerjasama` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_mitra` varchar(255) NOT NULL,
+  `jenis_mitra` varchar(100) NOT NULL,
+  `sumber_usulan` varchar(255) DEFAULT NULL,
+  `tandai` tinyint(1) DEFAULT 0,
+  `status_kesepahaman` varchar(50) DEFAULT NULL,
+  `nomor_kesepahaman` varchar(255) DEFAULT NULL,
+  `tanggal_kesepahaman` date DEFAULT NULL,
+  `ruanglingkup_kesepahaman` text DEFAULT NULL,
+  `status_pelaksanaan_kesepahaman` varchar(50) DEFAULT NULL,
+  `rencana_pertemuan_kesepahaman` date DEFAULT NULL,
+  `rencana_kolaborasi_kesepahaman` text DEFAULT NULL,
+  `status_progres_kesepahaman` text DEFAULT NULL,
+  `tindaklanjut_kesepahaman` text DEFAULT NULL,
+  `keterangan_kesepahaman` varchar(500) DEFAULT NULL,
+  `status_pks` varchar(50) DEFAULT NULL,
+  `nomor_pks` varchar(255) DEFAULT NULL,
+  `tanggal_pks` date DEFAULT NULL,
+  `ruanglingkup_pks` text DEFAULT NULL,
+  `status_pelaksanaan_pks` varchar(50) DEFAULT NULL,
+  `rencana_pertemuan_pks` date DEFAULT NULL,
+  `status_progres_pks` text DEFAULT NULL,
+  `tindaklanjut_pks` text DEFAULT NULL,
+  `keterangan_pks` varchar(500) DEFAULT NULL,
+  `file1` varchar(255) DEFAULT NULL,
+  `file2` varchar(255) DEFAULT NULL,
+  `file3` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_nama_mitra` (`nama_mitra`),
+  KEY `idx_jenis_mitra` (`jenis_mitra`),
+  KEY `idx_tandai` (`tandai`),
+  KEY `idx_status_kesepahaman` (`status_kesepahaman`),
+  KEY `idx_status_pks` (`status_pks`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
     -- table dokumen
