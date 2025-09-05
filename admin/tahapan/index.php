@@ -96,7 +96,6 @@ function formatValue($value) {
         body { font-family: 'Poppins', sans-serif; background-color: var(--bs-gray); }
         .main-container { background-color: white; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); padding: 2rem; margin-top: -4rem; position: relative; z-index: 2; }
         .page-title { color: var(--bs-blue-dark); font-weight: 700; }
-        .stats-card { background: linear-gradient(135deg, var(--bs-blue-dark) 0%, var(--bs-blue-light) 100%); color: white; border-radius: 0.75rem; padding: 1.5rem; text-align: center; }
         .controls-section { background-color: var(--bs-gray); border-radius: 0.75rem; padding: 1.5rem; }
         .table thead th { background-color: var(--bs-blue-dark); color: white; text-align: center; vertical-align: middle; }
         .table tbody tr:hover { transform: scale(1.015); box-shadow: 0 5px 15px rgba(0,0,0,0.1); background-color: #e9ecef; }
@@ -104,6 +103,7 @@ function formatValue($value) {
         .detail-section { background-color: var(--bs-gray); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
         .detail-section h6 { font-weight: 700; color: var(--bs-blue-dark); border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; margin-bottom: 1rem; }
         .detail-label { font-weight: 600; color: #555; }
+        .status-cell-info { font-size: 0.75rem; line-height: 1.2; }
     </style>
 </head>
 <body>
@@ -119,19 +119,11 @@ function formatValue($value) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-        
-        <?php
-        $stats = $conn->query("SELECT COUNT(*) as total, SUM(tandai) as prioritas FROM tahapan_kerjasama")->fetch_assoc();
-        ?>
-        <div class="row mb-4">
-            <div class="col-md-6 mb-3 mb-md-0"><div class="stats-card"><h3><?= $stats['total'] ?? 0 ?></h3><p class="mb-0">Total Mitra</p></div></div>
-            <div class="col-md-6"><div class="stats-card"><h3><?= $stats['prioritas'] ?? 0 ?></h3><p class="mb-0">Mitra Prioritas</p></div></div>
-        </div>
 
         <div class="controls-section mb-4">
             <div class="row g-3 align-items-center">
-                <div class="col-md-4"><input type="text" id="searchInput" class="form-control" placeholder="Cari nama mitra..."></div>
-                <div class="col-md-4">
+                <div class="col-lg-3 col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="Cari nama mitra..."></div>
+                <div class="col-lg-3 col-md-6">
                     <select id="filterJenis" class="form-select">
                         <option value="">Semua Jenis Mitra</option>
                         <option value="Kementerian/Lembaga">Kementerian/Lembaga</option>
@@ -142,7 +134,14 @@ function formatValue($value) {
                         <option value="Asosiasi/Komunitas">Asosiasi/Komunitas</option>
                     </select>
                 </div>
-                <div class="col-md-4 text-end"><a href="create.php" class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i> Tambah Mitra Baru</a></div>
+                <div class="col-lg-3 col-md-6">
+                    <select id="filterPrioritas" class="form-select">
+                        <option value="">Semua Prioritas</option>
+                        <option value="1">Mitra Prioritas</option>
+                        <option value="0">Bukan Prioritas</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6 text-end"><a href="create.php" class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i> Tambah Mitra Baru</a></div>
             </div>
         </div>
 
@@ -160,7 +159,8 @@ function formatValue($value) {
                 ?>
                     <tr data-bs-toggle="modal" data-bs-target="#detailModal<?= $row['id'] ?>" style="cursor:pointer;" 
                         data-nama="<?= strtolower(htmlspecialchars($row['nama_mitra'])) ?>" 
-                        data-jenis="<?= htmlspecialchars($row['jenis_mitra']) ?>">
+                        data-jenis="<?= htmlspecialchars($row['jenis_mitra']) ?>"
+                        data-prioritas="<?= $row['tandai'] ?>">
                         <td class="text-center fw-bold"><?= $no++ ?></td>
                         <td>
                             <div class="fw-bold"><?= htmlspecialchars($row['nama_mitra']) ?></div>
@@ -175,8 +175,20 @@ function formatValue($value) {
                             ?>
                             <span class="badge rounded-pill text-bg-<?= $badge_class ?>"><?= $display_text ?></span>
                         </td>
-                        <td class="text-center"><span class="badge rounded-pill text-bg-<?= getBadgeClass('status', $row['status_kesepahaman']) ?>"><?= htmlspecialchars($row['status_kesepahaman'] ?: 'N/A') ?></span></td>
-                        <td class="text-center"><span class="badge rounded-pill text-bg-<?= getBadgeClass('status', $row['status_pks']) ?>"><?= htmlspecialchars($row['status_pks'] ?: 'N/A') ?></span></td>
+                        <td class="text-center" style="vertical-align: top;">
+                            <span class="badge rounded-pill text-bg-<?= getBadgeClass('status', $row['status_kesepahaman']) ?> mb-1"><?= htmlspecialchars($row['status_kesepahaman'] ?: 'N/A') ?></span>
+                            <div class="status-cell-info text-muted mt-1">
+                                <div class="text-truncate" title="<?= htmlspecialchars($row['nomor_kesepahaman']) ?>"><?= formatValue($row['nomor_kesepahaman']) ?></div>
+                                <div><?= formatDate($row['tanggal_kesepahaman']) ?></div>
+                            </div>
+                        </td>
+                        <td class="text-center" style="vertical-align: top;">
+                            <span class="badge rounded-pill text-bg-<?= getBadgeClass('status', $row['status_pks']) ?> mb-1"><?= htmlspecialchars($row['status_pks'] ?: 'N/A') ?></span>
+                            <div class="status-cell-info text-muted mt-1">
+                                <div class="text-truncate" title="<?= htmlspecialchars($row['nomor_pks']) ?>"><?= formatValue($row['nomor_pks']) ?></div>
+                                <div><?= formatDate($row['tanggal_pks']) ?></div>
+                            </div>
+                        </td>
                         <td class="text-center" onclick="event.stopPropagation();">
                             <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-fill"></i></a>
                             
@@ -305,28 +317,33 @@ if ($result && $result->num_rows > 0) {
         
         const searchInput = document.getElementById('searchInput');
         const filterJenis = document.getElementById('filterJenis');
+        const filterPrioritas = document.getElementById('filterPrioritas');
         const tableBody = document.getElementById('mitraTableBody');
         const rows = tableBody.getElementsByTagName('tr');
         
         function filterTable() {
             const searchFilter = searchInput.value.toLowerCase();
             const jenisFilter = filterJenis.value;
+            const prioritasFilter = filterPrioritas.value;
             
             for (let i = 0; i < rows.length; i++) {
                 if(rows[i].children.length < 2) continue;
                 
                 const nama = rows[i].dataset.nama || '';
                 const jenis = rows[i].dataset.jenis || '';
+                const prioritas = rows[i].dataset.prioritas || '0';
                 
                 const showByName = nama.includes(searchFilter);
                 const showByJenis = jenisFilter === '' || jenis === jenisFilter;
+                const showByPrioritas = prioritasFilter === '' || prioritas === prioritasFilter;
                 
-                rows[i].style.display = (showByName && showByJenis) ? '' : 'none';
+                rows[i].style.display = (showByName && showByJenis && showByPrioritas) ? '' : 'none';
             }
         }
         
         searchInput.addEventListener('keyup', filterTable);
         filterJenis.addEventListener('change', filterTable);
+        filterPrioritas.addEventListener('change', filterTable);
 
         const deleteConfirmModal = document.getElementById('deleteConfirmModal');
         if (deleteConfirmModal) {

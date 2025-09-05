@@ -87,8 +87,8 @@ if (session_status() === PHP_SESSION_NONE) {
 </head>
 <body>
     <header class="main-header">
-        <h1><i class="bi bi-handshake"></i> Portal Jemari 5.0 PaskerID</h1>
-        <p>Sistem Informasi Substansi Jejaring Kemitrahan Pusat Pasar Kerja</p>
+        <h1><i class="bi bi-handshake"></i> Portal Jejaring Kemitraan PaskerID</h1>
+        <p>Sistem Informasi Substansi Jejaring Kemitraan Pusat Pasar Kerja</p>
         <nav class="main-nav">
             <ul>
                 <li><a href="/latsar/admin/tahapan/index.php"><i class="bi bi-diagram-3-fill"></i> Tahapan Kerjasama</a></li>

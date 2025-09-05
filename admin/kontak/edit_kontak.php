@@ -1,84 +1,105 @@
 <?php
+// Koneksi ke database
 $conn = new mysqli("localhost", "root", "", "jejaring_db");
-if ($conn->connect_error) die("Koneksi gagal: " . $conn->connect_error);
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 
+// Validasi ID
 $id = $_GET['id'] ?? null;
-if (!$id) die("ID tidak ada.");
+if (!$id || !is_numeric($id)) {
+    die("ID tidak valid.");
+}
+$id = intval($id);
 
+// Proses form HANYA jika ini adalah request AJAX POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['ajax'])) {
-    $nama_perusahaan = $conn->real_escape_string($_POST['nama_perusahaan']);
-    $nama_pic        = $conn->real_escape_string($_POST['nama_pic']);
-    $nomor_telp      = $conn->real_escape_string($_POST['nomor_telp']);
-    $alamat_email    = $conn->real_escape_string($_POST['alamat_email']);
+    // Ambil dan bersihkan data input
+    $nama_perusahaan = trim($conn->real_escape_string($_POST['nama_perusahaan']));
+    $nama_pic        = trim($conn->real_escape_string($_POST['nama_pic']));
+    $nomor_telp      = trim($conn->real_escape_string($_POST['nomor_telp']));
+    $alamat_email    = isset($_POST['alamat_email']) && $_POST['alamat_email'] !== "" 
+                       ? trim($conn->real_escape_string($_POST['alamat_email']))
+                       : NULL;
 
+    // --- VALIDASI DUPLIKAT BARU ---
+    // Cek apakah kombinasi Nama PIC dan No. Telp sudah digunakan oleh kontak LAIN
+    $checkStmt = $conn->prepare("SELECT id FROM kontak_mitra WHERE nama_pic = ? AND nomor_telp = ? AND id != ?");
+    $checkStmt->bind_param("ssi", $nama_pic, $nomor_telp, $id);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+
+    if ($checkResult->num_rows > 0) {
+        // Jika sudah ada, kirim pesan error dan hentikan proses
+        header('Content-Type: application/json');
+        echo json_encode(["success" => false, "error" => "Kombinasi Nama PIC dan Nomor Telepon sudah terdaftar."]);
+        $checkStmt->close();
+        exit;
+    }
+    $checkStmt->close();
+    // --- AKHIR VALIDASI ---
+
+    // Jika tidak ada duplikat, lanjutkan proses UPDATE
     $sql = "UPDATE kontak_mitra 
-            SET nama_perusahaan='$nama_perusahaan',
-                nama_pic='$nama_pic',
-                nomor_telp='$nomor_telp',
-                alamat_email='$alamat_email'
-            WHERE id=$id";
+            SET nama_perusahaan=?, nama_pic=?, nomor_telp=?, alamat_email=?
+            WHERE id=?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssi", $nama_perusahaan, $nama_pic, $nomor_telp, $alamat_email, $id);
 
     header('Content-Type: application/json');
-    if ($conn->query($sql)) {
+    if ($stmt->execute()) {
         echo json_encode(["success" => true]);
     } else {
-        echo json_encode(["success" => false, "error" => $conn->error]);
+        echo json_encode(["success" => false, "error" => $stmt->error]);
     }
+    $stmt->close();
     exit;
 }
 
+// Ambil data kontak yang akan diedit untuk ditampilkan di form
 $result = $conn->query("SELECT * FROM kontak_mitra WHERE id=$id");
 $row = $result->fetch_assoc();
+if (!$row) {
+    die("Kontak tidak ditemukan.");
+}
 ?>
-
 <style>
-  .popup-wrapper {
-    animation: fadeIn 0.3s ease;
-  }
-  .form-container {
-    max-width: 330px;
-    margin: auto;
-    background: #fff;
-    padding: 18px;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    animation: slideUp 0.35s ease;
-  }
-  @keyframes fadeIn {
-    from {opacity:0;} to {opacity:1;}
-  }
-  @keyframes slideUp {
-    from {transform: translateY(40px); opacity:0;}
-    to {transform: translateY(0); opacity:1;}
-  }
+  /* Styling untuk form di dalam popup */
+  .form-container { max-width: 100%; margin: auto; background: #fff; padding: 18px; border-radius: 12px; }
   h2 { text-align:center; margin-bottom:15px; font-size:18px; color:#333; }
   label { font-weight:600; display:block; margin-bottom:6px; color:#444; }
-  input {
-    width:100%; padding:8px 10px; margin-bottom:12px;
-    border:1px solid #ccc; border-radius:8px; font-size:14px;
-  }
+  input { width:100%; padding:8px 10px; margin-bottom:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; }
   .btn { display:inline-block; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-size:14px; }
   .btn.save { background:#4CAF50; color:#fff; }
   .btn.save:hover { background:#43a047; }
 </style>
 
-<div class="popup-wrapper">
-  <div class="form-container">
-    <h2>Edit Kontak</h2>
+<div class="form-container">
     <form id="editForm">
-      <label>Nama Perusahaan</label>
-      <input type="text" name="nama_perusahaan" value="<?= htmlspecialchars($row['nama_perusahaan']) ?>" required>
+      <div class="mb-3">
+        <label class="form-label">Nama Perusahaan <span class="text-danger">*</span></label>
+        <input type="text" name="nama_perusahaan" class="form-control" value="<?= htmlspecialchars($row['nama_perusahaan']) ?>" required>
+      </div>
 
-      <label>Nama PIC</label>
-      <input type="text" name="nama_pic" value="<?= htmlspecialchars($row['nama_pic']) ?>" required>
+      <div class="mb-3">
+        <label class="form-label">Nama PIC <span class="text-danger">*</span></label>
+        <input type="text" name="nama_pic" class="form-control" value="<?= htmlspecialchars($row['nama_pic']) ?>" required>
+      </div>
 
-      <label>No. Telp</label>
-      <input type="text" name="nomor_telp" value="<?= htmlspecialchars($row['nomor_telp']) ?>">
+      <div class="mb-3">
+        <label class="form-label">No. Telp <span class="text-danger">*</span></label>
+        <input type="text" name="nomor_telp" class="form-control" value="<?= htmlspecialchars($row['nomor_telp']) ?>" required>
+      </div>
 
-      <label>Email</label>
-      <input type="email" name="alamat_email" value="<?= htmlspecialchars($row['alamat_email']) ?>" required>
-
-      <button type="submit" class="btn save">💾 Simpan</button>
+      <div class="mb-3">
+        <label class="form-label">Email (opsional)</label>
+        <input type="email" name="alamat_email" class="form-control" value="<?= htmlspecialchars($row['alamat_email']) ?>">
+      </div>
+      
+      <div class="text-end">
+        <button type="submit" class="btn save"><i class="bi bi-save-fill"></i> Simpan Perubahan</button>
+      </div>
     </form>
-  </div>
 </div>
+

@@ -1,224 +1,281 @@
 <?php
 session_start();
+// Koneksi ke database
 $conn = new mysqli("localhost", "root", "", "jejaring_db");
-if ($conn->connect_error) die("Koneksi gagal: " . $conn->connect_error);
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
 
-$result = $conn->query("SELECT * FROM kontak_mitra ORDER BY id DESC");
+// --- LOGIKA PAGINASI DAN PENCARIAN ---
+$limit = 20; 
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+$search = $_GET['search'] ?? '';
+$whereClause = '';
+$params = [];
+$types = '';
 
-// panggil header
+if (!empty($search)) {
+    $searchTerm = "%" . $search . "%";
+    $whereClause = "WHERE nama_perusahaan LIKE ? OR nama_pic LIKE ? OR alamat_email LIKE ?";
+    $params = [$searchTerm, $searchTerm, $searchTerm];
+    $types = 'sss';
+}
+
+$countSql = "SELECT COUNT(*) as total FROM kontak_mitra $whereClause";
+$countStmt = $conn->prepare($countSql);
+if (!empty($params)) {
+    $countStmt->bind_param($types, ...$params);
+}
+$countStmt->execute();
+$total_rows = $countStmt->get_result()->fetch_assoc()['total'];
+$total_pages = ceil($total_rows / $limit);
+
+$sql = "SELECT * FROM kontak_mitra $whereClause ORDER BY nama_perusahaan ASC LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($sql);
+$final_params = $params;
+$final_params[] = $limit;
+$final_params[] = $offset;
+$final_types = $types . 'ii'; 
+$stmt->bind_param($final_types, ...$final_params);
+$stmt->execute();
+$result = $stmt->get_result();
+// --- AKHIR LOGIKA PAGINASI DAN PENCARIAN ---
+
 include __DIR__ . "/../../views/header.php";
 ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Kontak Mitra</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --bs-blue-dark: #0a3d62; 
+            --bs-blue-light: #3c6382; 
+            --bs-gray: #f5f7fa;
+            --bs-success: #28a745;
+            --bs-danger: #dc3545;
+        }
+        .main-container { background-color: white; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); padding: 2rem; margin-top: -4rem; position: relative; z-index: 2; }
+        .page-title { color: var(--bs-blue-dark); font-weight: 700; }
+        .controls-section { background-color: var(--bs-gray); border-radius: 0.75rem; padding: 1.5rem; }
+        .table thead th { background-color: var(--bs-blue-dark); color: white; text-align: center; vertical-align: middle; }
+        .table tbody tr:hover { transform: scale(1.01); box-shadow: 0 5px 15px rgba(0,0,0,0.1); background-color: #e9ecef; }
+        .action-buttons .btn { margin: 0 2px; }
+        .btn-wa { background-color: #25D366; color: white; }
+        .btn-wa:hover { background-color: #1DAE54; color: white; }
+        .modal-header { background: linear-gradient(135deg, var(--bs-blue-dark) 0%, var(--bs-blue-light) 100%); color: white; }
+        .pagination .page-link { color: var(--bs-blue-dark); }
+        .pagination .page-item.active .page-link { background-color: var(--bs-blue-dark); border-color: var(--bs-blue-dark); }
+        
+        /* Styling untuk Notifikasi Toast */
+        .toast-notification {
+            position: fixed; top: 20px; right: 20px; color: white; padding: 15px 25px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1060; 
+            opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s ease; font-weight: 500;
+        }
+        .toast-notification.success { background-color: var(--bs-success); }
+        .toast-notification.show { opacity: 1; transform: translateY(0); }
 
-<style>
-  body { font-family:"Segoe UI",sans-serif; background:#f5f7fa; color:#333; }
-  h2 { text-align:center; margin:15px 0; color:#222; font-size:20px; font-weight:600; }
-
-  .top-bar { display:flex; justify-content:flex-start; align-items:center; gap:10px; margin:0 20px 20px; }
-  .btn { padding:7px 14px; border-radius:8px; text-decoration:none; font-size:13px; transition:.2s; }
-  .btn.add { background:#4CAF50; color:#fff; } .btn.add:hover{background:#45a049;}
-  .btn.edit{ background:#2196F3; color:#fff;} .btn.edit:hover{background:#1976d2;}
-  .btn.delete{ background:#f44336; color:#fff;} .btn.delete:hover{background:#d32f2f;}
-
-  .search-box{position:relative; display:inline-block;}
-  .search-box input{padding:7px 28px 7px 28px; border:1px solid #ccc; border-radius:8px; font-size:13px; width:180px;}
-  .search-box i{position:absolute; top:50%; left:8px; transform:translateY(-50%); color:#888; font-size:14px;}
-
-  .card-container{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; padding:0 20px 40px;}
-  .contact-card{background:#fff; border:1px solid #e0e0e0; border-radius:16px; padding:20px; position:relative;
-                box-shadow:0 6px 16px rgba(0,0,0,0.1); transition:.2s;}
-  .contact-card:hover{transform:translateY(-5px); box-shadow:0 10px 20px rgba(0,0,0,0.15);}
-  .contact-card h3{margin:0 0 8px; font-size:18px; color:#111;}
-  .contact-card p{margin:4px 0; font-size:14px; color:#555;}
-  .card-actions{margin-top:12px;}
-
-  /* Tombol WA di pojok kanan atas */
-  .btn-wa {
-    position:absolute;
-    top:10px; right:10px;
-    background:#25D366; color:#fff;
-    padding:6px 10px; border-radius:50%;
-    font-size:15px; cursor:pointer;
-    box-shadow:0 2px 5px rgba(0,0,0,0.2);
-    transition:0.2s;
-  }
-  .btn-wa:hover { background:#1ebe5c; }
-
-  /* Modal */
-  .modal {
-    display: flex;
-    position: fixed;
-    z-index: 9999;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    background: rgba(0,0,0,0);
-    pointer-events: none;
-    transition: opacity 0.3s ease, background 0.3s ease;
-  }
-  .modal.show { opacity: 1; background: rgba(0,0,0,0.5); pointer-events: all; }
-  .modal-content {
-    background:#fff;
-    padding:20px;
-    border-radius:12px;
-    width:350px;
-    max-width:90%;
-    box-shadow:0 4px 10px rgba(0,0,0,.2);
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
-  }
-  .modal.show .modal-content { transform: translateY(0); }
-  .close{float:right; font-size:20px; cursor:pointer; color:#333;}
-</style>
-
-<h2>Kontak Mitra</h2>
-
-<div class="top-bar">
-  <a href="javascript:void(0)" class="btn add" onclick="openTambah()">+ Tambah Kontak</a>
-  <div class="search-box">
-    <i class="fas fa-search"></i>
-    <input type="text" id="searchInput" placeholder="Cari...">
-  </div>
-</div>
-
-<div class="card-container" id="kontakContainer">
-  <?php while($row = $result->fetch_assoc()): ?>
-    <div class="contact-card">
-      <!-- Tombol WA -->
-      <span class="btn-wa" onclick="shareWA(this)"><i class="fab fa-whatsapp"></i></span>
-
-      <h3><?= htmlspecialchars($row['nama_perusahaan']) ?></h3>
-      <p><strong>PIC:</strong> <?= htmlspecialchars($row['nama_pic']) ?></p>
-      <p><strong>No. Telp:</strong> <?= htmlspecialchars($row['nomor_telp']) ?></p>
-      <?php if (!empty($row['alamat_email'])): ?>
-        <p><strong>Email:</strong> <?= htmlspecialchars($row['alamat_email']) ?></p>
-      <?php endif; ?>
-
-      <div class="card-actions">
-        <a href="javascript:void(0)" class="btn edit" onclick="openEdit(<?= $row['id'] ?>)">Edit</a>
-        <a href="delete_kontak.php?id=<?= $row['id'] ?>" class="btn delete"
-           onclick="return confirm('Yakin hapus kontak ini?')">Delete</a>
-      </div>
+        /* CSS untuk Error Bubble di Form */
+        .error-bubble {
+            background-color: var(--bs-danger); color: white; padding: 8px 12px; border-radius: 6px;
+            font-size: 13px; margin-bottom: 8px; position: relative; animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Membuat panah kecil di bawah bubble */
+        .error-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 20px;
+            border-width: 8px 8px 0; border-style: solid; border-color: var(--bs-danger) transparent transparent transparent;
+        }
+        .form-control.is-invalid {
+            border-color: var(--bs-danger) !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container my-5">
+    <div class="main-container">
+        <div class="text-center mb-4"><h1 class="page-title"><i class="bi bi-person-rolodex"></i> Manajemen Kontak Mitra</h1></div>
+        <div class="controls-section mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-8">
+                     <form action="" method="GET" class="d-flex">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" class="form-control" placeholder="Cari berdasarkan nama perusahaan, PIC, atau email..." value="<?= htmlspecialchars($search) ?>">
+                            <button class="btn btn-outline-secondary" type="submit">Cari</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end"><button class="btn btn-primary w-100" onclick="openTambah()"><i class="bi bi-plus-circle"></i> Tambah Kontak Baru</button></div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr><th>No</th><th>Nama Perusahaan</th><th>Nama PIC</th><th>Nomor Telepon</th><th>Email</th><th>Aksi</th></tr></thead>
+                <tbody>
+                    <?php if ($result && $result->num_rows > 0): $no = $offset + 1; while ($row = $result->fetch_assoc()): ?>
+                    <tr>
+                        <td class="text-center fw-bold"><?= $no++ ?></td>
+                        <td class="nama-perusahaan"><?= htmlspecialchars($row['nama_perusahaan']) ?></td>
+                        <td class="nama-pic"><?= htmlspecialchars($row['nama_pic']) ?></td>
+                        <td class="nomor-telp"><?= htmlspecialchars($row['nomor_telp']) ?></td>
+                        <td class="alamat-email"><?= htmlspecialchars($row['alamat_email'] ?: '-') ?></td>
+                        <td class="text-center action-buttons">
+                            <button class="btn btn-sm btn-wa" title="Salin Info WA" onclick="shareWA(event, this)"><i class="fab fa-whatsapp"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" title="Edit Kontak" onclick="openEdit(event, <?= $row['id'] ?>)"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" title="Hapus Kontak" data-delete-url="delete_kontak.php?id=<?= $row['id'] ?>" data-contact-name="<?= htmlspecialchars($row['nama_perusahaan']) ?>" onclick="openDeleteConfirm(event, this)"><i class="bi bi-trash-fill"></i></button>
+                        </td>
+                    </tr>
+                    <?php endwhile; else: ?>
+                    <tr><td colspan="6" class="text-center p-5"><?= !empty($search) ? 'Kontak dengan kata kunci "'.htmlspecialchars($search).'" tidak ditemukan.' : 'Belum ada data kontak. Silakan tambahkan kontak baru.' ?></td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                <?php if($total_pages > 1): ?>
+                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>"><a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a></li>
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?= ($page == $i) ? 'active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a></li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>"><a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>">Next</a></li>
+                <?php endif; ?>
+            </ul>
+        </nav>
     </div>
-  <?php endwhile; ?>
 </div>
+<!-- Modals -->
+<div class="modal fade" id="formModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="formModalLabel"></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modalBodyContent"></div></div></div></div>
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Konfirmasi Hapus</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body">Apakah Anda yakin ingin menghapus kontak <strong id="contactNameToDelete"></strong>?</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><a href="#" id="confirmDeleteBtn" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Ya, Hapus</a></div></div></div></div>
 
-<!-- Modal -->
-<div id="editModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <div id="modalBody">Loading...</div>
-  </div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // search
-  const searchInput=document.getElementById("searchInput");
-  const cards=document.querySelectorAll(".contact-card");
-  searchInput.addEventListener("keyup", function(){
-    let filter=searchInput.value.toLowerCase();
-    cards.forEach(card=>{
-      let text=card.innerText.toLowerCase();
-      card.style.display=text.includes(filter)?"block":"none";
-    });
-  });
+    const formModal = new bootstrap.Modal(document.getElementById('formModal'));
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const modalBody = document.getElementById('modalBodyContent');
+    const modalTitle = document.getElementById('formModalLabel');
 
-  // buka form edit
-  function openEdit(id){
-    const modal=document.getElementById("editModal");
-    const body=document.getElementById("modalBody");
-    modal.classList.add("show");
-    body.innerHTML="Loading...";
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification success';
+        toast.textContent = `✅ ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    }
 
-    fetch("edit_kontak.php?id="+id+"&ajax=1")
-      .then(res=>res.text())
-      .then(html=>{
-        body.innerHTML=html;
-        const form = document.getElementById("editForm");
-        form.addEventListener("submit", function(e){
-          e.preventDefault();
-          const formData = new FormData(form);
-          fetch("edit_kontak.php?id="+id+"&ajax=1", {
-            method: "POST",
-            body: formData
-          })
-          .then(res => res.json())
-          .then(data => {
-            if(data.success){
-              alert("Data berhasil diperbarui!");
-              closeModal();
-              location.reload();
-            } else {
-              alert("Gagal update: " + data.error);
-            }
-          });
+    function setupFormListeners(form) {
+        const telpInput = form.querySelector('input[name="nomor_telp"]');
+        if (telpInput) {
+            telpInput.addEventListener('input', () => {
+                const errorBubble = form.querySelector('.error-bubble');
+                if (errorBubble) errorBubble.style.display = 'none';
+                telpInput.classList.remove('is-invalid');
+            });
+        }
+    }
+
+    function openTambah() {
+        modalTitle.innerHTML = '<i class="bi bi-person-plus-fill"></i> Tambah Kontak Baru';
+        modalBody.innerHTML = '<p class="text-center">Memuat form...</p>';
+        formModal.show();
+        fetch("tambah_kontak.php?ajax=1").then(response => response.text()).then(html => {
+            modalBody.innerHTML = html;
+            const form = document.getElementById('tambahForm');
+            setupFormListeners(form);
+            form.addEventListener('submit', handleFormSubmit);
         });
-      });
-  }
+    }
 
-  // buka form tambah
-  function openTambah(){
-    const modal=document.getElementById("editModal");
-    const body=document.getElementById("modalBody");
-    modal.classList.add("show");
-    body.innerHTML="Loading...";
-
-    fetch("tambah_kontak.php?ajax=1")
-      .then(res=>res.text())
-      .then(html=>{
-        body.innerHTML=html;
-        const form = document.getElementById("tambahForm");
-        form.addEventListener("submit", function(e){
-          e.preventDefault();
-          const formData = new FormData(form);
-          fetch("tambah_kontak.php?ajax=1", {
-            method: "POST",
-            body: formData
-          })
-          .then(res => res.json())
-          .then(data => {
-            if(data.success){
-              alert("Kontak berhasil ditambahkan!");
-              closeModal();
-              location.reload();
-            } else {
-              alert("Gagal tambah: " + data.error);
-            }
-          });
+    function openEdit(event, id) {
+        event.stopPropagation();
+        modalTitle.innerHTML = '<i class="bi bi-pencil-square"></i> Edit Kontak';
+        modalBody.innerHTML = '<p class="text-center">Memuat form...</p>';
+        formModal.show();
+        fetch(`edit_kontak.php?id=${id}&ajax=1`).then(response => response.text()).then(html => {
+            modalBody.innerHTML = html;
+            const form = document.getElementById('editForm');
+            setupFormListeners(form);
+            form.addEventListener('submit', (e) => handleFormSubmit(e, id));
         });
-      });
-  }
+    }
+    
+    function openDeleteConfirm(event, element) {
+        event.stopPropagation();
+        document.getElementById('contactNameToDelete').textContent = element.getAttribute('data-contact-name');
+        document.getElementById('confirmDeleteBtn').setAttribute('href', element.getAttribute('data-delete-url'));
+        deleteConfirmModal.show();
+    }
 
-  // tutup modal
-  function closeModal(){
-    const modal=document.getElementById("editModal");
-    modal.classList.remove("show");
-    setTimeout(()=>{ document.getElementById("modalBody").innerHTML=""; }, 300);
-  }
+    function handleFormSubmit(event, id = null) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const url = id ? `edit_kontak.php?id=${id}&ajax=1` : 'tambah_kontak.php?ajax=1';
+        
+        const telpInput = form.querySelector('input[name="nomor_telp"]');
+        let errorBubble = form.querySelector('.error-bubble');
 
-  // tombol WA copy (nama + pic + link wa + email bila ada)
-  function shareWA(el){
-    let card = el.closest(".contact-card");
-    let nama = card.querySelector("h3").innerText;
-    let pic = card.querySelector("p:nth-of-type(1)").innerText.replace("PIC: ","").trim();
-    let telp = card.querySelector("p:nth-of-type(2)").innerText.replace("No. Telp: ","").trim();
-    let emailEl = card.querySelector("p:nth-of-type(3)");
-    let email = emailEl ? emailEl.innerText.replace("Email: ","").trim() : "";
+        // Sembunyikan error lama sebelum mengirim
+        if (errorBubble) errorBubble.style.display = 'none';
+        if (telpInput) telpInput.classList.remove('is-invalid');
 
-    let nomorWA = telp.replace(/^0/, "62");
-    let linkWA = "https://wa.me/" + nomorWA;
+        fetch(url, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                formModal.hide();
+                showToast(id ? 'Kontak berhasil diperbarui!' : 'Kontak berhasil ditambahkan!');
+                setTimeout(() => location.reload(), 1500); 
+            } else {
+                // Tampilkan bubble error
+                if (telpInput) {
+                    // Jika bubble tidak ada di HTML, buat secara dinamis
+                    if (!errorBubble) {
+                        errorBubble = document.createElement('div');
+                        errorBubble.className = 'error-bubble';
+                        // Masukkan bubble sebelum input nomor telepon
+                        telpInput.parentNode.insertBefore(errorBubble, telpInput);
+                    }
+                    
+                    errorBubble.innerHTML = `❌ ${data.error}`;
+                    errorBubble.style.display = 'block';
+                    telpInput.classList.add('is-invalid');
+                } else {
+                    // Fallback jika input telp tidak ditemukan
+                    alert(data.error); 
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
 
-    let text = `*${nama}* - ${pic}\n${linkWA}`;
-    if(email) text += `\n${email}`;
-
-    navigator.clipboard.writeText(text).then(()=>{
-      alert("✅ Data WA berhasil disalin:\n" + text);
-    }).catch(err=>{
-      alert("❌ Gagal menyalin: " + err);
-    });
-  }
+    function shareWA(event, element) {
+        event.stopPropagation();
+        const row = element.closest('tr');
+        const perusahaan = row.querySelector('.nama-perusahaan').textContent.trim();
+        const pic = row.querySelector('.nama-pic').textContent.trim();
+        const telp = row.querySelector('.nomor-telp').textContent.trim();
+        const email = row.querySelector('.alamat-email').textContent.trim();
+        let nomorWA = telp.replace(/^0/, '62');
+        let linkWA = `https://wa.me/${nomorWA}`;
+        let textToCopy = `*Kontak Mitra: ${perusahaan}*\nPIC: ${pic}\nWA: ${linkWA}`;
+        if (email && email !== '-') {
+            textToCopy += `\nEmail: ${email}`;
+        }
+        navigator.clipboard.writeText(textToCopy).then(() => showToast('Info kontak berhasil disalin!'));
+    }
 </script>
+</body>
+</html>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<?php echo "</main></body></html>"; ?>

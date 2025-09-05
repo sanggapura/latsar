@@ -22,21 +22,25 @@ CREATE TABLE IF NOT EXISTS kontak_mitra (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nama_perusahaan VARCHAR(200) NOT NULL,
   nama_pic VARCHAR(150) NOT NULL,
-  nomor_telp VARCHAR(50) DEFAULT NULL,
-  alamat_email VARCHAR(191) NOT NULL,
+  nomor_telp VARCHAR(50) NOT NULL,
+  alamat_email VARCHAR(191) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_nama_perusahaan (nama_perusahaan),
-  INDEX idx_alamat_email (alamat_email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  INDEX idx_nama_perusahaan (nama_perusahaan)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table Scedule
-CREATE TABLE schedules (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    start DATETIME NOT NULL,
-    end DATETIME NOT NULL
-);
+CREATE TABLE `jadwal_acara` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `judul_acara` VARCHAR(255) NOT NULL COMMENT 'Judul atau nama dari acara/kegiatan.',
+  `tanggal_acara` DATE NOT NULL COMMENT 'Tanggal pelaksanaan acara.',
+  `jam_acara` TIME NOT NULL COMMENT 'Waktu (jam) pelaksanaan acara.',
+  `tempat` VARCHAR(255) NOT NULL COMMENT 'Lokasi atau tempat acara diadakan.',
+  `agenda` TEXT DEFAULT NULL COMMENT 'Agenda atau topik pembahasan utama dalam acara.',
+  `keterangan` TEXT DEFAULT NULL COMMENT 'Catatan atau keterangan tambahan terkait acara.',
+  `created_at` TIMESTAMP NOT NULL DEFAULT current_timestamp() COMMENT 'Waktu data jadwal ini dibuat.',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tahapan Kerjasama
 CREATE TABLE `tahapan_kerjasama` (
@@ -79,14 +83,14 @@ CREATE TABLE `tahapan_kerjasama` (
 
 
     -- table dokumen
-CREATE TABLE dokumen (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    judul VARCHAR(255) NOT NULL,
-    jenis ENUM('word','excel','pdf') NOT NULL,
-    tanggal DATE NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE `dokumen` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `judul` VARCHAR(255) NOT NULL COMMENT 'Judul dokumen yang diberikan oleh pengguna',
+  `jenis` VARCHAR(10) NOT NULL COMMENT 'Jenis file dari ekstensi, misal: "pdf", "docx"',
+  `tanggal` DATE NOT NULL COMMENT 'Tanggal saat dokumen diunggah',
+  `file_path` VARCHAR(255) NOT NULL COMMENT 'Nama file unik yang disimpan di server',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 

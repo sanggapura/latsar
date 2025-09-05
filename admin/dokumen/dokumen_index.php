@@ -1,798 +1,303 @@
 <?php
 session_start();
+// Koneksi ke database
 $conn = new mysqli("localhost", "root", "", "jejaring_db");
-if ($conn->connect_error) die("Koneksi gagal: " . $conn->connect_error);
-
-// pencarian
-$search = $_GET['search'] ?? '';
-if ($search) {
-    $stmt = $conn->prepare("SELECT * FROM dokumen WHERE judul LIKE ? ORDER BY tanggal DESC");
-    $param = "%$search%";
-    $stmt->bind_param("s", $param);
-    $stmt->execute();
-    $result = $stmt->get_result();
-} else {
-    $result = $conn->query("SELECT * FROM dokumen ORDER BY tanggal DESC");
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// panggil header
+// --- LOGIKA PAGINASI DAN PENCARIAN ---
+$limit = 20;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+$search = $_GET['search'] ?? '';
+$whereClause = '';
+$params = [];
+$types = '';
+
+if (!empty($search)) {
+    $searchTerm = "%" . $search . "%";
+    $whereClause = "WHERE judul LIKE ?";
+    $params[] = $searchTerm;
+    $types .= 's';
+}
+
+// Query untuk menghitung total data
+$countSql = "SELECT COUNT(*) as total FROM dokumen $whereClause";
+$countStmt = $conn->prepare($countSql);
+if (!empty($params)) {
+    $countStmt->bind_param($types, ...$params);
+}
+$countStmt->execute();
+$total_rows = $countStmt->get_result()->fetch_assoc()['total'];
+$total_pages = ceil($total_rows / $limit);
+
+// Query utama untuk mengambil data dengan limit dan offset
+$sql = "SELECT * FROM dokumen $whereClause ORDER BY tanggal DESC LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($sql);
+
+$final_params = $params;
+$final_params[] = $limit;
+$final_params[] = $offset;
+$final_types = $types . 'ii';
+
+$stmt->bind_param($final_types, ...$final_params);
+$stmt->execute();
+$result = $stmt->get_result();
+// --- AKHIR LOGIKA ---
+
 include __DIR__ . "/../../views/header.php";
 ?>
-
-<style>
-/* Global Styling */
-body {
-    background: #f8f9fa;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #333;
-}
-
-.container {
-    max-width: 1200px;
-    padding: 15px 0;
-}
-
-/* Header */
-.page-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #222;
-    text-align: center;
-    margin: 15px 0;
-}
-
-/* Top Controls */
-.top-controls {
-    display: flex;
-    gap: 10px;
-    margin: 0 20px 20px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.btn {
-    border: none;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-}
-
-.btn-add {
-    background: #28a745;
-    color: white;
-}
-
-.btn-add:hover {
-    background: #218838;
-}
-
-.search-input {
-    flex: 1;
-    max-width: 180px;
-    position: relative;
-}
-
-.search-input input {
-    width: 100%;
-    padding: 7px 28px 7px 28px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 13px;
-    background: white;
-}
-
-.search-input::before {
-    content: "🔍";
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    font-size: 14px;
-}
-
-.btn-reset {
-    background: #6c757d;
-    color: white;
-    padding: 7px 12px;
-}
-
-.btn-reset:hover {
-    background: #5a6268;
-}
-
-/* Cards Grid */
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-top: 20px;
-    padding: 0 20px 40px;
-}
-
-.document-card {
-    background: white;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    border: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.document-card:hover {
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    transform: translateY(-5px);
-}
-
-.card-header {
-    margin-bottom: 12px;
-    position: relative;
-    padding-right: 80px;
-}
-
-.document-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111;
-    margin: 0;
-    line-height: 1.3;
-}
-
-.card-top-actions {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: flex;
-    gap: 4px;
-}
-
-.card-info {
-    margin-bottom: 16px;
-}
-
-.file-extension {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.file-icon {
-    font-size: 20px;
-}
-
-.file-ext {
-    background: #e9ecef;
-    color: #495057;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.upload-date {
-    font-size: 13px;
-    color: #666;
-}
-
-.card-top-actions .btn-view,
-.card-top-actions .btn-download {
-    background: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 8px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.card-top-actions .btn-view:hover,
-.card-top-actions .btn-download:hover {
-    background: #1976d2;
-}
-
-.info-value {
-    color: #333;
-    flex: 1;
-}
-
-.file-type-badge {
-    background: #e9ecef;
-    color: #495057;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-}
-
-.info-value {
-    color: #333;
-    flex: 1;
-}
-
-.card-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 6px;
-}
-
-.btn-view {
-    background: #17a2b8;
-    color: white;
-}
-
-.btn-view:hover {
-    background: #138496;
-}
-
-.btn-download {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-download:hover {
-    background: #5a6268;
-}
-
-.btn-edit {
-    background: #ffc107;
-    color: #212529;
-}
-
-.btn-edit:hover {
-    background: #e0a800;
-}
-
-.btn-delete {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-delete:hover {
-    background: #c82333;
-}
-
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #666;
-}
-
-.empty-icon {
-    font-size: 48px;
-    margin-bottom: 20px;
-    opacity: 0.5;
-}
-
-/* Add Panel */
-.add-panel {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 350px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    border: 1px solid #e9ecef;
-    z-index: 1000;
-    margin-top: 5px;
-}
-
-.add-panel-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #e9ecef;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.add-panel-title {
-    font-weight: 600;
-    color: #333;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #666;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.add-panel-body {
-    padding: 20px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: #333;
-    font-size: 14px;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    box-sizing: border-box;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1);
-}
-
-.file-help {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.btn-save {
-    background: #28a745;
-    color: white;
-}
-
-.btn-save:hover {
-    background: #218838;
-}
-
-/* Modal */
-.modal {
-    backdrop-filter: blur(4px);
-    background: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    border-radius: 12px 12px 0 0;
-    padding: 20px;
-}
-
-.modal-title {
-    font-weight: 600;
-    color: #333;
-    margin: 0;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .top-controls {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0 20px;
-    }
-    
-    .search-input {
-        max-width: none;
-    }
-    
-    .cards-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 12px;
-    }
-    
-    .add-panel {
-        width: calc(100vw - 40px);
-        left: 50%;
-        transform: translateX(-50%);
-    }
-}
-
-@media (max-width: 480px) {
-    .document-card {
-        padding: 12px;
-    }
-    
-    .card-actions {
-        flex-direction: column;
-        gap: 4px;
-    }
-    
-    .btn-sm {
-        width: 100%;
-        justify-content: center;
-        font-size: 10px;
-        padding: 4px 6px;
-    }
-    
-    .card-header {
-        padding-right: 60px;
-    }
-    
-    .card-top-actions {
-        gap: 2px;
-    }
-}
-</style>
-
-<div class="container">
-    <h1 class="page-title">Manajemen Dokumen</h1>
-    
-    <!-- Top Controls -->
-    <div class="top-controls">
-        <div style="position: relative;">
-            <button onclick="toggleAdd()" class="btn btn-add">+ Tambah Dokumen</button>
-            
-            <!-- Add Panel -->
-            <div id="addPanel" class="add-panel">
-                <div class="add-panel-header">
-                    <span class="add-panel-title">Tambah Dokumen</span>
-                    <button type="button" class="close-btn" onclick="toggleAdd()">×</button>
-                </div>
-                <div class="add-panel-body">
-                    <form action="dokumen_tambah.php" method="POST" enctype="multipart/form-data" id="tambahForm">
-                        <div class="form-group">
-                            <label class="form-label">Judul</label>
-                            <input type="text" name="judul" class="form-control" placeholder="Masukkan judul dokumen" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">File</label>
-                            <input type="file" name="file" id="fileInput" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" required>
-                            <div class="file-help">Format: PDF, DOC, DOCX, XLS, XLSX</div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Jenis File</label>
-                            <input type="text" name="jenis" id="jenisFile" class="form-control" placeholder="Akan terisi otomatis" readonly style="background: #f8f9fa;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tanggal Upload</label>
-                            <input type="text" name="tanggal" id="tanggalUpload" class="form-control" readonly style="background: #f8f9fa;" value="<?= date('d M Y') ?>">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-save">Simpan</button>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Dokumen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --bs-blue-dark: #0a3d62; 
+            --bs-blue-light: #3c6382; 
+            --bs-gray: #f5f7fa;
+            --bs-success: #28a745;
+        }
+        .main-container { background-color: white; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 2rem; margin-top: -4rem; position: relative; z-index: 2; }
+        .page-title { color: var(--bs-blue-dark); font-weight: 700; }
+        .controls-section { background-color: var(--bs-gray); border-radius: 0.75rem; padding: 1.5rem; }
+        .table thead th { background-color: var(--bs-blue-dark); color: white; text-align: center; vertical-align: middle; }
+        .table tbody tr:hover { transform: scale(1.01); box-shadow: 0 5px 15px rgba(0,0,0,0.1); background-color: #e9ecef; }
+        .action-buttons .btn { margin: 0 2px; }
+        .modal-header { background: linear-gradient(135deg, var(--bs-blue-dark) 0%, var(--bs-blue-light) 100%); color: white; }
+        .pagination .page-link { color: var(--bs-blue-dark); }
+        .pagination .page-item.active .page-link { background-color: var(--bs-blue-dark); border-color: var(--bs-blue-dark); }
+        .file-type-badge { display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
+        
+        /* Gaya untuk Notifikasi Toast */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--bs-success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1060;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-weight: 500;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+<div class="container my-5">
+    <div class="main-container">
+        <div class="text-center mb-4">
+            <h1 class="page-title"><i class="bi bi-folder-fill"></i> Manajemen Dokumen</h1>
+        </div>
+        <div class="controls-section mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-8">
+                    <form action="" method="GET" class="d-flex">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" class="form-control" placeholder="Cari berdasarkan judul dokumen..." value="<?= htmlspecialchars($search) ?>">
+                            <button class="btn btn-outline-secondary" type="submit">Cari</button>
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-        
-        <div class="search-input">
-            <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" name="search" placeholder="Cari..." value="<?= htmlspecialchars($search) ?>">
-                <?php if ($search): ?>
-                <button type="button" onclick="window.location='?'" class="btn btn-reset">Reset</button>
-                <?php endif; ?>
-            </form>
-        </div>
-    </div>
-
-    <!-- Documents Grid -->
-    <div class="cards-grid">
-        <?php if ($result->num_rows > 0): ?>
-            <?php while($row = $result->fetch_assoc()): ?>
-                <div class="document-card">
-                    <div class="card-header">
-                        <h3 class="document-title"><?= htmlspecialchars($row['judul']) ?></h3>
-                        <div class="card-top-actions">
-                            <button type="button" class="btn-view" onclick="openView('<?= htmlspecialchars($row['file_path'],ENT_QUOTES) ?>')" title="Lihat">
-                                👁️
-                            </button>
-                            <a href="<?= htmlspecialchars($row['file_path']) ?>" class="btn-download" download title="Download">
-                                ⬇️
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="card-info">
-                        <div class="file-extension">
-                            <?php 
-                            $ext = strtoupper(pathinfo($row['file_path'], PATHINFO_EXTENSION));
-                            $icon = '📄'; // default
-                            if($ext == 'PDF') $icon = '📄';
-                            elseif(in_array($ext, ['DOC', 'DOCX'])) $icon = '📝';
-                            elseif(in_array($ext, ['XLS', 'XLSX'])) $icon = '📊';
-                            ?>
-                            <span class="file-icon"><?= $icon ?></span>
-                            <span class="file-ext"><?= $ext ?></span>
-                        </div>
-                        <div class="upload-date">
-                            <?= date('d M Y', strtotime($row['tanggal'])) ?>
-                        </div>
-                    </div>
-                    
-                    <div class="card-actions">
-                        <button class="btn btn-sm btn-edit" onclick="openEdit(<?= $row['id'] ?>,'<?= htmlspecialchars($row['judul'],ENT_QUOTES) ?>')">
-                            ✏️ Edit
-                        </button>
-                        <a href="dokumen_delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-delete" onclick="return confirm('Yakin hapus?')">
-                            🗑️ Delete
-                        </a>
-                    </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-primary w-100" onclick="openTambah()">
+                        <i class="bi bi-plus-circle"></i> Tambah Dokumen Baru
+                    </button>
                 </div>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <div class="empty-state" style="grid-column: 1 / -1;">
-                <div class="empty-icon">📂</div>
-                <h3>Tidak ada dokumen</h3>
-                <p>Belum ada dokumen yang ditambahkan. Klik "Tambah Dokumen" untuk mulai.</p>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
-
-<!-- View Modal -->
-<div class="modal" id="viewModal" tabindex="-1" style="display:none;align-items:center;justify-content:center;position:fixed;top:0;left:0;width:100%;height:100%;">
-    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width:90%;width:90%;">
-        <div class="modal-content" style="max-height:90vh;">
-            <div class="modal-header">
-                <h5 class="modal-title">Lihat Dokumen</h5>
-                <button type="button" class="close-btn" onclick="closeView()">×</button>
-            </div>
-            <div class="modal-body" style="height:80vh;">
-                <iframe id="viewFrame" src="" style="width:100%;height:100%;border:none;border-radius:8px;"></iframe>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Edit Modal -->
-<div class="modal" id="editModal" tabindex="-1" style="display:none;align-items:center;justify-content:center;position:fixed;top:0;left:0;width:100%;height:100%;">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;width:90%;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Dokumen</h5>
-                <button type="button" class="close-btn" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <form action="dokumen_update.php" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="id" id="editId">
-                    <div class="form-group">
-                        <label class="form-label">Judul</label>
-                        <input type="text" name="judul" id="editJudul" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">File Baru (opsional)</label>
-                        <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx">
-                        <div class="file-help">Kosongkan jika tidak ingin mengganti file</div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-reset" onclick="closeModal()">Batal</button>
-                        <button type="submit" class="btn btn-save">Simpan</button>
-                    </div>
-                </form>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Judul Dokumen</th>
+                        <th>Jenis File</th>
+                        <th>Tanggal Upload</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($result->num_rows > 0): ?>
+                        <?php $no = $offset + 1; while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td class="text-center fw-bold"><?= $no++ ?></td>
+                            <td><?= htmlspecialchars($row['judul']) ?></td>
+                            <td class="text-center">
+                                <?php 
+                                $ext = strtoupper($row['jenis']);
+                                $badge_class = 'secondary';
+                                $icon = 'bi-file-earmark-text';
+                                if (in_array($ext, ['DOC', 'DOCX'])) { $badge_class = 'primary'; $icon = 'bi-file-earmark-word-fill'; }
+                                elseif (in_array($ext, ['XLS', 'XLSX'])) { $badge_class = 'success'; $icon = 'bi-file-earmark-excel-fill'; }
+                                elseif ($ext == 'PDF') { $badge_class = 'danger'; $icon = 'bi-file-earmark-pdf-fill'; }
+                                ?>
+                                <span class="badge text-bg-<?= $badge_class ?> file-type-badge">
+                                    <i class="bi <?= $icon ?>"></i> <?= $ext ?>
+                                </span>
+                            </td>
+                            <td class="text-center"><?= date('d M Y', strtotime($row['tanggal'])) ?></td>
+                            <td class="text-center action-buttons">
+                                <button class="btn btn-sm btn-outline-info" title="Lihat" onclick="openView('uploads/<?= htmlspecialchars($row['file_path']) ?>')"><i class="bi bi-eye-fill"></i></button>
+                                <a href="uploads/<?= htmlspecialchars($row['file_path']) ?>" download class="btn btn-sm btn-outline-secondary" title="Download"><i class="bi bi-download"></i></a>
+                                <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEdit(<?= $row['id'] ?>, '<?= htmlspecialchars($row['judul'], ENT_QUOTES) ?>')"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" title="Hapus" onclick="openDeleteConfirm(<?= $row['id'] ?>, '<?= htmlspecialchars($row['judul'], ENT_QUOTES) ?>')"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" class="text-center p-5">Tidak ada dokumen ditemukan.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                <?php if ($total_pages > 1): ?>
+                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>"><a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>">Previous</a></li>
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?= ($page == $i) ? 'active' : '' ?>"><a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a></li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>"><a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>">Next</a></li>
+                <?php endif; ?>
+            </ul>
+        </nav>
     </div>
 </div>
 
+<!-- Modals -->
+<div class="modal fade" id="formModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="formModalLabel"></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modalBodyContent"></div></div></div></div>
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Konfirmasi Hapus</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body">Apakah Anda yakin ingin menghapus dokumen <strong id="docNameToDelete"></strong>?</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><a href="#" id="confirmDeleteBtn" class="btn btn-danger">Ya, Hapus</a></div></div></div></div>
+<div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content" style="height: 90vh;"><div class="modal-header"><h5 class="modal-title">Pratinjau Dokumen</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><iframe id="viewFrame" src="" width="100%" height="100%" frameborder="0"></iframe></div></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function toggleAdd(){
-    let panel = document.getElementById("addPanel");
-    panel.style.display = (panel.style.display === "block") ? "none" : "block";
-}
+    const formModal = new bootstrap.Modal(document.getElementById('formModal'));
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+    
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = '✅ ' + message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    }
 
-function openEdit(id, judul){
-    document.getElementById('editId').value = id;
-    document.getElementById('editJudul').value = judul;
-    document.getElementById('editModal').style.display = 'flex';
-    
-    // Setup auto-fill for edit form
-    const editFileInput = document.getElementById('editFileInput');
-    const editJenisFile = document.getElementById('editJenisFile');
-    const editForm = document.getElementById('editForm');
-    
-    if (editFileInput && editJenisFile) {
-        // Clear previous values
-        editJenisFile.value = '';
+    function handleDocFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
         
-        // Remove previous event listeners
-        editFileInput.removeEventListener('change', handleEditFileChange);
-        editFileInput.addEventListener('change', handleEditFileChange);
-    }
-    
-    // Handle edit form submission with AJAX
-    if (editForm) {
-        editForm.removeEventListener('submit', handleEditFormSubmit);
-        editForm.addEventListener('submit', handleEditFormSubmit);
-    }
-}
-
-function handleEditFileChange() {
-    const editJenisFile = document.getElementById('editJenisFile');
-    if (this.files && this.files[0]) {
-        const fileName = this.files[0].name;
-        const extension = fileName.split('.').pop().toUpperCase();
-        editJenisFile.value = extension;
-    } else {
-        editJenisFile.value = '';
-    }
-}
-
-function handleEditFormSubmit(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    
-    // Show loading state
-    submitBtn.textContent = 'Menyimpan...';
-    submitBtn.disabled = true;
-    
-    fetch('dokumen_update.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-        if (data.includes('berhasil') || data.includes('success')) {
-            alert('✅ Dokumen berhasil diperbarui!');
-            closeModal();
-            location.reload();
-        } else {
-            alert('❌ Gagal memperbarui dokumen. Silakan coba lagi.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('❌ Terjadi kesalahan. Silakan coba lagi.');
-    })
-    .finally(() => {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    });
-}
-
-function closeModal(){
-    document.getElementById('editModal').style.display = 'none';
-}
-
-function openView(filePath){
-    let ext = filePath.split('.').pop().toLowerCase();
-    let frame = document.getElementById('viewFrame');
-    if(ext === 'pdf'){
-        frame.src = "view.php?file=" + encodeURIComponent(filePath);
-    } else {
-        frame.src = "https://docs.google.com/gview?url=" + window.location.origin + "/" + filePath + "&embedded=true";
-    }
-    document.getElementById('viewModal').style.display = 'flex';
-}
-
-function closeView(){
-    document.getElementById('viewModal').style.display = 'none';
-    document.getElementById('viewFrame').src = "";
-}
-
-function shareWhatsApp(title) {
-    // Function removed as WhatsApp button is no longer needed
-}
-
-// Close panels when clicking outside
-window.addEventListener('click', function(e){
-    let panel = document.getElementById("addPanel");
-    let btn = e.target.closest('.btn-add');
-    if (panel.style.display === "block" && !panel.contains(e.target) && !btn) {
-        panel.style.display = "none";
-    }
-});
-
-// Auto-fill file type when file is selected
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('fileInput');
-    const jenisFile = document.getElementById('jenisFile');
-    const tambahForm = document.getElementById('tambahForm');
-    
-    if (fileInput && jenisFile) {
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                const extension = fileName.split('.').pop().toUpperCase();
-                jenisFile.value = extension;
-            } else {
-                jenisFile.value = '';
-            }
-        });
-    }
-    
-    // Handle form submission with AJAX
-    if (tambahForm) {
-        tambahForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            
-            // Show loading state
-            submitBtn.textContent = 'Menyimpan...';
-            submitBtn.disabled = true;
-            
-            fetch('dokumen_tambah.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                // Check if upload was successful (you may need to modify this based on your PHP response)
-                if (data.includes('berhasil') || data.includes('success')) {
-                    alert('✅ Dokumen berhasil ditambahkan!');
-                    
-                    // Reset form
-                    tambahForm.reset();
-                    jenisFile.value = '';
-                    
-                    // Close panel
-                    toggleAdd();
-                    
-                    // Reload page to show new document
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                formModal.hide();
+                const isEditing = form.action.includes('update');
+                showToast(isEditing ? 'Dokumen berhasil diperbarui!' : 'Dokumen berhasil ditambahkan!');
+                
+                setTimeout(() => {
                     location.reload();
-                } else {
-                    alert('❌ Gagal menambahkan dokumen. Silakan coba lagi.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('❌ Terjadi kesalahan. Silakan coba lagi.');
-            })
-            .finally(() => {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            });
+                }, 1500); 
+            } else {
+                alert('Error: ' + (data.error || 'Terjadi kesalahan.'));
+            }
+        })
+        .catch(error => {
+            console.error('Submit error:', error);
+            alert('Terjadi kesalahan koneksi.');
         });
     }
-});
 
-// Close modals when clicking outside
-window.onclick = function(e){
-    if(e.target == document.getElementById('editModal')) closeModal();
-    if(e.target == document.getElementById('viewModal')) closeView();
-}
+    function openTambah() {
+        document.getElementById('formModalLabel').innerHTML = '<i class="bi bi-plus-circle"></i> Tambah Dokumen Baru';
+        const modalBody = document.getElementById('modalBodyContent');
+        modalBody.innerHTML = `
+            <form id="docForm" action="dokumen_tambah.php" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">Judul Dokumen <span class="text-danger">*</span></label>
+                    <input type="text" name="judul" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">File <span class="text-danger">*</span></label>
+                    <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" required>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        `;
+        document.getElementById('docForm').addEventListener('submit', handleDocFormSubmit);
+        formModal.show();
+    }
+
+    function openEdit(id, judul) {
+        document.getElementById('formModalLabel').innerHTML = '<i class="bi bi-pencil-square"></i> Edit Dokumen';
+        const modalBody = document.getElementById('modalBodyContent');
+        modalBody.innerHTML = `
+            <form id="docForm" action="dokumen_update.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="${id}">
+                <div class="mb-3">
+                    <label class="form-label">Judul Dokumen</label>
+                    <input type="text" name="judul" class="form-control" value="${judul}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ganti File (Opsional)</label>
+                    <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx">
+                    <small class="form-text text-muted">Kosongkan jika tidak ingin mengganti file.</small>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        `;
+        document.getElementById('docForm').addEventListener('submit', handleDocFormSubmit);
+        formModal.show();
+    }
+
+    function openDeleteConfirm(id, docName) {
+        document.getElementById('docNameToDelete').textContent = docName;
+        document.getElementById('confirmDeleteBtn').href = `dokumen_delete.php?id=${id}`;
+        deleteConfirmModal.show();
+    }
+
+    function openView(filePath) {
+        const viewFrame = document.getElementById('viewFrame');
+        const fullUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/${filePath}`;
+        
+        let viewUrl;
+        if (filePath.toLowerCase().endsWith('.pdf')) {
+            viewUrl = filePath;
+        } else {
+            viewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true`;
+        }
+        
+        viewFrame.src = viewUrl;
+        viewModal.show();
+    }
 </script>
+</body>
+</html>
 
-<?php
-echo "</main></body></html>";
-?>
