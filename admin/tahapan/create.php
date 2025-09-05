@@ -3,17 +3,85 @@ include "db.php";
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 $errors = [];
+
+/**
+ * Fungsi untuk menangani upload file dengan aman.
+ * File akan dinamai ulang berdasarkan input pengguna jika ada.
+ *
+ * @param string $fileKey Kunci dari array $_FILES (misal: 'file1')
+ * @param string $customName Nama kustom dari input form
+ * @param string $uploadDir Direktori tujuan upload
+ * @return string|null Nama file yang disimpan, atau null jika gagal
+ */
+function handleUpload($fileKey, $customName, $uploadDir) {
+    if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] == UPLOAD_ERR_OK) {
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $originalFileName = $_FILES[$fileKey]['name'];
+        $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
+        
+        $baseName = basename($originalFileName, "." . $fileExtension); // Nama file asli tanpa ekstensi
+
+        // Jika nama kustom diisi, gunakan itu. Jika tidak, gunakan nama file asli.
+        $finalName = !empty(trim($customName)) ? trim($customName) : $baseName;
+
+        // Bersihkan nama file dari karakter yang tidak aman dan ganti spasi dengan _
+        $safeFileName = preg_replace('/[^a-zA-Z0-9-_\.]/', '', str_replace(' ', '_', $finalName));
+        
+        // Gabungkan dengan timestamp untuk memastikan keunikan
+        $newFileName = time() . '_' . $safeFileName . '.' . $fileExtension;
+        $targetPath = $uploadDir . $newFileName;
+
+        if (move_uploaded_file($_FILES[$fileKey]['tmp_name'], $targetPath)) {
+            return $newFileName;
+        }
+    }
+    return null;
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty(trim($_POST['nama_mitra']))) { $errors['nama_mitra'] = "Nama Mitra wajib diisi"; }
     if (empty(trim($_POST['jenis_mitra']))) { $errors['jenis_mitra'] = "Jenis Mitra wajib dipilih"; }
+    
     if (count($errors) === 0) {
-        $sql = "INSERT INTO tahapan_kerjasama (nama_mitra, jenis_mitra, sumber_usulan, tandai, status_kesepahaman, nomor_kesepahaman, tanggal_kesepahaman, ruanglingkup_kesepahaman, status_pelaksanaan_kesepahaman, rencana_pertemuan_kesepahaman, rencana_kolaborasi_kesepahaman, status_progres_kesepahaman, tindaklanjut_kesepahaman, keterangan_kesepahaman, status_pks, nomor_pks, tanggal_pks, ruanglingkup_pks, status_pelaksanaan_pks, rencana_pertemuan_pks, status_progres_pks, tindaklanjut_pks, keterangan_pks) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        // Proses upload file dengan nama kustom
+        $uploadDir = __DIR__ . '/uploads/';
+        $file1Name = handleUpload('file1', $_POST['file1_nama'], $uploadDir);
+        $file2Name = handleUpload('file2', $_POST['file2_nama'], $uploadDir);
+        $file3Name = handleUpload('file3', $_POST['file3_nama'], $uploadDir);
+
+        $sql = "INSERT INTO tahapan_kerjasama (
+                    nama_mitra, jenis_mitra, sumber_usulan, tandai, 
+                    status_kesepahaman, nomor_kesepahaman, tanggal_kesepahaman, ruanglingkup_kesepahaman, status_pelaksanaan_kesepahaman, 
+                    rencana_pertemuan_kesepahaman, rencana_kolaborasi_kesepahaman, status_progres_kesepahaman, tindaklanjut_kesepahaman, keterangan_kesepahaman, 
+                    status_pks, nomor_pks, tanggal_pks, ruanglingkup_pks, status_pelaksanaan_pks, 
+                    rencana_pertemuan_pks, status_progres_pks, tindaklanjut_pks, keterangan_pks,
+                    file1, file2, file3
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        
         $stmt = $conn->prepare($sql);
+        
         $tandai = isset($_POST['tandai']) ? 1 : 0;
         foreach ($_POST as $key => $value) { if (empty($value)) { $_POST[$key] = null; } }
-        $stmt->bind_param("sssisssssssssssssssssss", $_POST['nama_mitra'], $_POST['jenis_mitra'], $_POST['sumber_usulan'], $tandai, $_POST['status_kesepahaman'], $_POST['nomor_kesepahaman'], $_POST['tanggal_kesepahaman'], $_POST['ruanglingkup_kesepahaman'], $_POST['status_pelaksanaan_kesepahaman'], $_POST['rencana_pertemuan_kesepahaman'], $_POST['rencana_kolaborasi_kesepahaman'], $_POST['status_progres_kesepahaman'], $_POST['tindaklanjut_kesepahaman'], $_POST['keterangan_kesepahaman'], $_POST['status_pks'], $_POST['nomor_pks'], $_POST['tanggal_pks'], $_POST['ruanglingkup_pks'], $_POST['status_pelaksanaan_pks'], $_POST['rencana_pertemuan_pks'], $_POST['status_progres_pks'], $_POST['tindaklanjut_pks'], $_POST['keterangan_pks']);
-        if ($stmt->execute()) { header("Location: index.php?success=created"); exit(); } 
-        else { $errors['db_error'] = "Gagal menyimpan: " . htmlspecialchars($stmt->error); }
+        
+        $stmt->bind_param("sssissssssssssssssssssssss", 
+            $_POST['nama_mitra'], $_POST['jenis_mitra'], $_POST['sumber_usulan'], $tandai, 
+            $_POST['status_kesepahaman'], $_POST['nomor_kesepahaman'], $_POST['tanggal_kesepahaman'], $_POST['ruanglingkup_kesepahaman'], $_POST['status_pelaksanaan_kesepahaman'], 
+            $_POST['rencana_pertemuan_kesepahaman'], $_POST['rencana_kolaborasi_kesepahaman'], $_POST['status_progres_kesepahaman'], $_POST['tindaklanjut_kesepahaman'], $_POST['keterangan_kesepahaman'], 
+            $_POST['status_pks'], $_POST['nomor_pks'], $_POST['tanggal_pks'], $_POST['ruanglingkup_pks'], $_POST['status_pelaksanaan_pks'], 
+            $_POST['rencana_pertemuan_pks'], $_POST['status_progres_pks'], $_POST['tindaklanjut_pks'], $_POST['keterangan_pks'],
+            $file1Name, $file2Name, $file3Name
+        );
+        
+        if ($stmt->execute()) { 
+            header("Location: index.php?success=created"); 
+            exit(); 
+        } else { 
+            $errors['db_error'] = "Gagal menyimpan: " . htmlspecialchars($stmt->error); 
+        }
     }
 }
 ?>
@@ -37,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container my-5"><div class="row justify-content-center"><div class="col-lg-11"><div class="card form-card">
         <div class="card-header form-card-header text-center p-4"><h2 class="mb-1"><i class="bi bi-person-plus-fill"></i> Tambah Mitra Baru</h2><p class="mb-0">Lengkapi informasi di bawah ini.</p></div>
         <div class="card-body p-4 p-md-5">
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <h5 class="form-section-title pb-2 mb-4"><i class="bi bi-building"></i> Informasi Dasar Mitra</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6"><label class="form-label">Nama Mitra <span class="text-danger">*</span></label><input type="text" name="nama_mitra" class="form-control" required></div>
@@ -91,6 +159,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
+
+                <!-- Bagian Upload File -->
+                <h5 class="form-section-title mt-5"><i class="bi bi-paperclip"></i> Dokumen Pendukung</h5>
+                <div class="row g-4 align-items-end">
+                    <!-- File 1: Kesepahaman -->
+                    <div class="col-md-6">
+                        <label for="file1_nama" class="form-label">Nama File Kesepahaman (MoU)</label>
+                        <input class="form-control" type="text" id="file1_nama" name="file1_nama" placeholder="Contoh: MoU dengan Mitra A">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="file1" class="form-label">Pilih File Kesepahaman</label>
+                        <input class="form-control" type="file" id="file1" name="file1">
+                    </div>
+                    
+                    <!-- File 2: PKS -->
+                    <div class="col-md-6">
+                        <label for="file2_nama" class="form-label">Nama File PKS</label>
+                        <input class="form-control" type="text" id="file2_nama" name="file2_nama" placeholder="Contoh: PKS Program Magang">
+                    </div>
+                    <div class="col-md-6">
+                         <label for="file2" class="form-label">Pilih File PKS</label>
+                        <input class="form-control" type="file" id="file2" name="file2">
+                    </div>
+
+                    <!-- File 3: Notulensi -->
+                    <div class="col-md-6">
+                        <label for="file3_nama" class="form-label">Nama File Notulensi</label>
+                        <input class="form-control" type="text" id="file3_nama" name="file3_nama" placeholder="Contoh: Notulensi Rapat Kick-off">
+                    </div>
+                    <div class="col-md-6">
+                         <label for="file3" class="form-label">Pilih File Notulensi</label>
+                        <input class="form-control" type="file" id="file3" name="file3">
+                    </div>
+                </div>
+
                 <hr class="my-5">
                 <div class="d-flex justify-content-end gap-2"><a href="index.php" class="btn btn-secondary">Batal</a><button type="submit" class="btn btn-primary"><i class="bi bi-save-fill me-2"></i>Simpan Mitra</button></div>
             </form>
@@ -106,3 +209,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 </body>
 </html>
+
