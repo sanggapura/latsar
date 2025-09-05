@@ -20,12 +20,17 @@ if (isset($_GET['success'])) {
             $message = 'Data mitra berhasil dihapus!';
             $messageType = 'success';
             break;
+        case 'file_deleted':
+            $message = 'File berhasil dihapus!';
+            $messageType = 'success';
+            break;
     }
 }
 if (isset($_GET['error'])) {
     switch ($_GET['error']) {
         case 'invalid_id':
-            $message = 'ID tidak valid!';
+        case 'invalid_request':
+            $message = 'Permintaan tidak valid!';
             $messageType = 'danger';
             break;
         case 'not_found':
@@ -33,7 +38,8 @@ if (isset($_GET['error'])) {
             $messageType = 'danger';
             break;
         case 'delete_failed':
-            $message = 'Gagal menghapus data!';
+        case 'db_update_failed':
+            $message = 'Gagal memproses data!';
             $messageType = 'danger';
             break;
     }
@@ -208,43 +214,42 @@ if ($result && $result->num_rows > 0) {
                 <div class="detail-section"><h6><i class="bi bi-handshake"></i> Tahap Kesepahaman (MoU)</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_kesepahaman']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Rencana Kolaborasi:</span><br><?= nl2br(formatValue($row['rencana_kolaborasi_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_kesepahaman']) ?></p></div></div></div>
                 <div class="detail-section"><h6><i class="bi bi-file-earmark-text"></i> Tahap PKS</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_pks']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_pks']) ?></p></div></div></div>
                 
-                <!-- [PERUBAHAN] Menampilkan File di Modal -->
                 <div class="detail-section">
                     <h6><i class="bi bi-paperclip"></i> Dokumen Pendukung</h6>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div><i class="bi bi-file-earmark-text me-2"></i>File Kesepahaman (MoU)</div>
+                    <ul class="list-group">
+                        <?php
+                        $fileLabels = ['File Kesepahaman', 'File PKS', 'File Notulensi'];
+                        $fileFound = false;
+                        for ($i = 1; $i <= 3; $i++):
+                            $fileKey = "file" . $i;
+                            if (!empty($row[$fileKey])):
+                                $fileFound = true;
+                        ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <?php if (!empty($row['file1'])): ?>
-                                    <button type="button" class="btn btn-sm btn-info view-file-btn" data-filename="<?= htmlspecialchars($row['file1']) ?>"><i class="bi bi-eye"></i> Lihat</button>
-                                    <a href="uploads/<?= htmlspecialchars($row['file1']) ?>" download class="btn btn-sm btn-secondary"><i class="bi bi-download"></i> Download</a>
-                                <?php else: ?>
-                                    <span class="badge bg-light text-dark">Tidak ada</span>
-                                <?php endif; ?>
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                                <strong><?= $fileLabels[$i-1] ?>:</strong>
+                                <span class="ms-2"><?= htmlspecialchars($row[$fileKey]) ?></span>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="openFileViewer('<?= urlencode($row[$fileKey]) ?>')">
+                                    <i class="bi bi-eye"></i> Lihat
+                                </button>
+                                <a href="uploads/<?= htmlspecialchars($row[$fileKey]) ?>" class="btn btn-sm btn-outline-success" download>
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <a href="delete_file.php?id=<?= $row['id'] ?>&file_key=<?= $fileKey ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Anda yakin ingin menghapus file ini secara permanen?')">
+                                    <i class="bi bi-trash"></i> Hapus
+                                </a>
                             </div>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                             <div><i class="bi bi-file-earmark-text me-2"></i>File PKS</div>
-                            <div>
-                                <?php if (!empty($row['file2'])): ?>
-                                    <button type="button" class="btn btn-sm btn-info view-file-btn" data-filename="<?= htmlspecialchars($row['file2']) ?>"><i class="bi bi-eye"></i> Lihat</button>
-                                    <a href="uploads/<?= htmlspecialchars($row['file2']) ?>" download class="btn btn-sm btn-secondary"><i class="bi bi-download"></i> Download</a>
-                                <?php else: ?>
-                                    <span class="badge bg-light text-dark">Tidak ada</span>
-                                <?php endif; ?>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                             <div><i class="bi bi-file-earmark-text me-2"></i>File Notulensi</div>
-                            <div>
-                                <?php if (!empty($row['file3'])): ?>
-                                    <button type="button" class="btn btn-sm btn-info view-file-btn" data-filename="<?= htmlspecialchars($row['file3']) ?>"><i class="bi bi-eye"></i> Lihat</button>
-                                    <a href="uploads/<?= htmlspecialchars($row['file3']) ?>" download class="btn btn-sm btn-secondary"><i class="bi bi-download"></i> Download</a>
-                                <?php else: ?>
-                                    <span class="badge bg-light text-dark">Tidak ada</span>
-                                <?php endif; ?>
-                            </div>
-                        </li>
+                        <?php 
+                            endif;
+                        endfor;
+                        if (!$fileFound):
+                        ?>
+                        <li class="list-group-item text-muted">Tidak ada dokumen yang diunggah.</li>
+                        <?php endif; ?>
                     </ul>
                 </div>
 
@@ -257,21 +262,6 @@ if ($result && $result->num_rows > 0) {
     endwhile;
 }
 ?>
-
-<!-- MODAL UNTUK MELIHAT FILE -->
-<div class="modal fade" id="viewFileModal" tabindex="-1" aria-labelledby="viewFileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content" style="height: 90vh;">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewFileModalLabel">Pratinjau File</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <iframe id="fileViewerFrame" src="about:blank" width="100%" height="100%" frameborder="0"></iframe>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -291,10 +281,28 @@ if ($result && $result->num_rows > 0) {
   </div>
 </div>
 
+<!-- Modal untuk View File -->
+<div class="modal fade" id="viewFileModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pratinjau Dokumen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 80vh;">
+                <iframe id="fileViewerFrame" src="about:blank" width="100%" height="100%" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    let viewFileModal;
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Script untuk filter (tidak berubah)
+        viewFileModal = new bootstrap.Modal(document.getElementById('viewFileModal'));
+        
         const searchInput = document.getElementById('searchInput');
         const filterJenis = document.getElementById('filterJenis');
         const tableBody = document.getElementById('mitraTableBody');
@@ -320,7 +328,6 @@ if ($result && $result->num_rows > 0) {
         searchInput.addEventListener('keyup', filterTable);
         filterJenis.addEventListener('change', filterTable);
 
-        // Script untuk menangani modal konfirmasi hapus
         const deleteConfirmModal = document.getElementById('deleteConfirmModal');
         if (deleteConfirmModal) {
             deleteConfirmModal.addEventListener('show.bs.modal', function (event) {
@@ -330,34 +337,13 @@ if ($result && $result->num_rows > 0) {
                 confirmBtn.setAttribute('href', deleteUrl);
             });
         }
-        
-        // --- SCRIPT BARU UNTUK MODAL PRATINJAU FILE ---
-        const viewFileModal = new bootstrap.Modal(document.getElementById('viewFileModal'));
-        const fileViewerFrame = document.getElementById('fileViewerFrame');
-        const viewFileModalLabel = document.getElementById('viewFileModalLabel');
-
-        // Menggunakan event delegation untuk menangani semua tombol "Lihat"
-        document.body.addEventListener('click', function(event) {
-            if (event.target.classList.contains('view-file-btn')) {
-                const filename = event.target.getAttribute('data-filename');
-                if (filename) {
-                    // Set judul modal
-                    viewFileModalLabel.textContent = 'Pratinjau: ' + filename;
-                    // Set sumber iframe dan buka modal
-                    fileViewerFrame.src = `view_file.php?file=${encodeURIComponent(filename)}`;
-                    viewFileModal.show();
-                }
-            }
-        });
-        
-        // Membersihkan iframe saat modal ditutup untuk menghentikan pemutaran video/audio
-        const modalElement = document.getElementById('viewFileModal');
-        modalElement.addEventListener('hidden.bs.modal', function () {
-            fileViewerFrame.src = 'about:blank';
-            viewFileModalLabel.textContent = 'Pratinjau File';
-        });
-
     });
+
+    function openFileViewer(fileName) {
+        const frame = document.getElementById('fileViewerFrame');
+        frame.src = `view_file.php?file=${fileName}`;
+        viewFileModal.show();
+    }
 </script>
 </body>
 </html>

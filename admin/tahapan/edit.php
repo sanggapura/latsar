@@ -1,6 +1,6 @@
 <?php
 // =================================================================
-// FILE: edit.php (VERSI PERBAIKAN FINAL)
+// FILE: edit.php (VERSI PERBAIKAN FINAL - FIXED)
 // =================================================================
 include "../../views/header.php";
 include "db.php"; 
@@ -119,8 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // [PERBAIKAN] String tipe data ini sekarang memiliki 27 karakter, cocok dengan 27 parameter.
-        $types = "sssisssssssssssssssssssssssi";
+        // [PERBAIKAN] String tipe data yang benar: 27 parameter dengan tipe yang sesuai
+        // s = string, i = integer, d = double/decimal
+        $types = "sssissssssssssssssssssssssi";
         $stmt_update->bind_param($types, ...$params);
 
         if ($stmt_update->execute()) {
@@ -152,6 +153,7 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
         .form-card-header { background: linear-gradient(135deg, var(--bs-blue-dark) 0%, var(--bs-blue-light) 100%); color: white; }
         .form-section-title { font-weight: 600; color: var(--bs-blue-dark); border-bottom: 2px solid var(--bs-blue-light); }
         .file-upload-section .form-label { font-weight: 500; margin-bottom: 0.25rem; }
+        .error-alert { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -164,67 +166,192 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
                         <p class="mb-0">Perbarui informasi untuk: <strong><?= htmlspecialchars($data['nama_mitra'] ?? '') ?></strong></p>
                     </div>
                     <div class="card-body p-4 p-md-5">
+                        <?php if (!empty($errors)): ?>
+                            <div class="error-alert">
+                                <strong>Terjadi kesalahan:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?= htmlspecialchars($error) ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+                        
                         <form method="POST" action="" enctype="multipart/form-data">
                             <h5 class="form-section-title pb-2 mb-4"><i class="bi bi-building"></i> Informasi Dasar Mitra</h5>
                             <div class="row g-3 mb-4">
-                                <div class="col-md-6"><label class="form-label">Nama Mitra <span class="text-danger">*</span></label><input type="text" name="nama_mitra" class="form-control" value="<?= htmlspecialchars($_POST['nama_mitra'] ?? $data['nama_mitra'] ?? '') ?>" required></div>
-                                <div class="col-md-6"><label class="form-label">Jenis Mitra <span class="text-danger">*</span></label>
-                                    <select name="jenis_mitra" class="form-select" required>
+                                <div class="col-md-6">
+                                    <label class="form-label">Nama Mitra <span class="text-danger">*</span></label>
+                                    <input type="text" name="nama_mitra" class="form-control <?= isset($errors['nama_mitra']) ? 'is-invalid' : '' ?>" value="<?= htmlspecialchars($_POST['nama_mitra'] ?? $data['nama_mitra'] ?? '') ?>" required>
+                                    <?php if (isset($errors['nama_mitra'])): ?>
+                                        <div class="invalid-feedback"><?= htmlspecialchars($errors['nama_mitra']) ?></div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Jenis Mitra <span class="text-danger">*</span></label>
+                                    <select name="jenis_mitra" class="form-select <?= isset($errors['jenis_mitra']) ? 'is-invalid' : '' ?>" required>
                                         <option value="">-- Pilih Jenis --</option>
-                                        <?php $current_jenis = $_POST['jenis_mitra'] ?? $data['jenis_mitra'] ?? ''; ?>
-                                        <option value="Kementerian/Lembaga" <?= $current_jenis == 'Kementerian/Lembaga' ? 'selected' : '' ?>>Kementerian/Lembaga</option>
-                                        <option value="Pemerintah Daerah" <?= $current_jenis == 'Pemerintah Daerah' ? 'selected' : '' ?>>Pemerintah Daerah</option>
-                                        <option value="Swasta/Perusahaan" <?= $current_jenis == 'Swasta/Perusahaan' ? 'selected' : '' ?>>Swasta/Perusahaan</option>
-                                        <option value="Job Portal" <?= $current_jenis == 'Job Portal' ? 'selected' : '' ?>>Job Portal</option>
-                                        <option value="Universitas" <?= $current_jenis == 'Universitas' ? 'selected' : '' ?>>Universitas</option>
-                                        <option value="Asosiasi/Komunitas" <?= $current_jenis == 'Asosiasi/Komunitas' ? 'selected' : '' ?>>Asosiasi/Komunitas</option>
+                                        <?php 
+                                        $current_jenis = $_POST['jenis_mitra'] ?? $data['jenis_mitra'] ?? '';
+                                        $jenis_options = [
+                                            'Kementerian/Lembaga' => 'Kementerian/Lembaga',
+                                            'Pemerintah Daerah' => 'Pemerintah Daerah',
+                                            'Swasta/Perusahaan' => 'Swasta/Perusahaan',
+                                            'Job Portal' => 'Job Portal',
+                                            'Universitas' => 'Universitas',
+                                            'Asosiasi/Komunitas' => 'Asosiasi/Komunitas'
+                                        ];
+                                        foreach ($jenis_options as $value => $label): ?>
+                                            <option value="<?= htmlspecialchars($value) ?>" <?= $current_jenis == $value ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+                                        <?php endforeach; ?>
                                     </select>
+                                    <?php if (isset($errors['jenis_mitra'])): ?>
+                                        <div class="invalid-feedback"><?= htmlspecialchars($errors['jenis_mitra']) ?></div>
+                                    <?php endif; ?>
                                 </div>
-                                <div class="col-md-6"><label class="form-label">Sumber Usulan</label><input type="text" name="sumber_usulan" class="form-control" value="<?= htmlspecialchars($_POST['sumber_usulan'] ?? $data['sumber_usulan'] ?? '') ?>"></div>
-                                <div class="col-md-6 d-flex align-items-end"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="tandai" value="1" id="tandaiCheck" <?= ($data['tandai'] ?? 0) ? 'checked' : '' ?>><label class="form-check-label" for="tandaiCheck">Tandai sebagai prioritas</label></div></div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Sumber Usulan</label>
+                                    <input type="text" name="sumber_usulan" class="form-control" value="<?= htmlspecialchars($_POST['sumber_usulan'] ?? $data['sumber_usulan'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="tandai" value="1" id="tandaiCheck" <?= (($_POST['tandai'] ?? $data['tandai']) ?? 0) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="tandaiCheck">Tandai sebagai prioritas</label>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <h5 class="form-section-title mt-5"><i class="bi bi-handshake"></i> Tahap Kesepahaman (MoU)</h5>
+                            <h5 class="form-section-title mt-5 pb-2 mb-4"><i class="bi bi-handshake"></i> Tahap Kesepahaman (MoU)</h5>
                             <div class="row g-3">
-                                <!-- Isi field MoU -->
                                 <div class="col-md-6">
-                                    <div class="mb-3"><label class="form-label">Status Kesepahaman</label><select name="status_kesepahaman" class="form-select"><option value="">-- Pilih Status --</option><option value="Signed" <?= ($data['status_kesepahaman'] ?? '') == 'Signed' ? 'selected' : '' ?>>Signed</option><option value="Not Available" <?= ($data['status_kesepahaman'] ?? '') == 'Not Available' ? 'selected' : '' ?>>Not Available</option><option value="Drafting/In Progress" <?= ($data['status_kesepahaman'] ?? '') == 'Drafting/In Progress' ? 'selected' : '' ?>>Drafting/In Progress</option></select></div>
-                                    <div class="mb-3"><label class="form-label">Nomor</label><input type="text" name="nomor_kesepahaman" class="form-control" value="<?= htmlspecialchars($data['nomor_kesepahaman'] ?? '') ?>"></div>
-                                    <div class="mb-3"><label class="form-label">Tanggal</label><input type="date" name="tanggal_kesepahaman" class="form-control" value="<?= htmlspecialchars($data['tanggal_kesepahaman'] ?? '') ?>"></div>
-                                    <div class="mb-3"><label class="form-label">Status Pelaksanaan</label><select name="status_pelaksanaan_kesepahaman" class="form-select"><option value="">-- Pilih Status --</option><option value="Implemented" <?= ($data['status_pelaksanaan_kesepahaman'] ?? '') == 'Implemented' ? 'selected' : '' ?>>Implemented</option><option value="In Progress" <?= ($data['status_pelaksanaan_kesepahaman'] ?? '') == 'In Progress' ? 'selected' : '' ?>>In Progress</option><option value="Not Yet" <?= ($data['status_pelaksanaan_kesepahaman'] ?? '') == 'Not Yet' ? 'selected' : '' ?>>Not Yet</option></select></div>
-                                    <div class="mb-3"><label class="form-label">Rencana Pertemuan</label><input type="date" name="rencana_pertemuan_kesepahaman" class="form-control" value="<?= htmlspecialchars($data['rencana_pertemuan_kesepahaman'] ?? '') ?>"></div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Status Kesepahaman</label>
+                                        <select name="status_kesepahaman" class="form-select">
+                                            <option value="">-- Pilih Status --</option>
+                                            <?php 
+                                            $current_status = $_POST['status_kesepahaman'] ?? $data['status_kesepahaman'] ?? '';
+                                            $status_options = ['Signed', 'Not Available', 'Drafting/In Progress'];
+                                            foreach ($status_options as $status): ?>
+                                                <option value="<?= htmlspecialchars($status) ?>" <?= $current_status == $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nomor</label>
+                                        <input type="text" name="nomor_kesepahaman" class="form-control" value="<?= htmlspecialchars($_POST['nomor_kesepahaman'] ?? $data['nomor_kesepahaman'] ?? '') ?>">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tanggal</label>
+                                        <input type="date" name="tanggal_kesepahaman" class="form-control" value="<?= htmlspecialchars($_POST['tanggal_kesepahaman'] ?? $data['tanggal_kesepahaman'] ?? '') ?>">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Status Pelaksanaan</label>
+                                        <select name="status_pelaksanaan_kesepahaman" class="form-select">
+                                            <option value="">-- Pilih Status --</option>
+                                            <?php 
+                                            $current_pelaksanaan = $_POST['status_pelaksanaan_kesepahaman'] ?? $data['status_pelaksanaan_kesepahaman'] ?? '';
+                                            $pelaksanaan_options = ['Implemented', 'In Progress', 'Not Yet'];
+                                            foreach ($pelaksanaan_options as $pelaksanaan): ?>
+                                                <option value="<?= htmlspecialchars($pelaksanaan) ?>" <?= $current_pelaksanaan == $pelaksanaan ? 'selected' : '' ?>><?= htmlspecialchars($pelaksanaan) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Rencana Pertemuan</label>
+                                        <input type="date" name="rencana_pertemuan_kesepahaman" class="form-control" value="<?= htmlspecialchars($_POST['rencana_pertemuan_kesepahaman'] ?? $data['rencana_pertemuan_kesepahaman'] ?? '') ?>">
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="mb-3"><label class="form-label">Ruang Lingkup</label><textarea name="ruanglingkup_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($data['ruanglingkup_kesepahaman'] ?? '') ?></textarea></div>
-                                    <div class="mb-3"><label class="form-label">Rencana Kolaborasi</label><textarea name="rencana_kolaborasi_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($data['rencana_kolaborasi_kesepahaman'] ?? '') ?></textarea></div>
-                                    <div class="mb-3"><label class="form-label">Status/Progres</label><textarea name="status_progres_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($data['status_progres_kesepahaman'] ?? '') ?></textarea></div>
-                                    <div class="mb-3"><label class="form-label">Tindak Lanjut</label><textarea name="tindaklanjut_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($data['tindaklanjut_kesepahaman'] ?? '') ?></textarea></div>
-                                    <div class="mb-3"><label class="form-label">Keterangan</label><input type="text" name="keterangan_kesepahaman" class="form-control" value="<?= htmlspecialchars($data['keterangan_kesepahaman'] ?? '') ?>"></div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Ruang Lingkup</label>
+                                        <textarea name="ruanglingkup_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($_POST['ruanglingkup_kesepahaman'] ?? $data['ruanglingkup_kesepahaman'] ?? '') ?></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Rencana Kolaborasi</label>
+                                        <textarea name="rencana_kolaborasi_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($_POST['rencana_kolaborasi_kesepahaman'] ?? $data['rencana_kolaborasi_kesepahaman'] ?? '') ?></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Status/Progres</label>
+                                        <textarea name="status_progres_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($_POST['status_progres_kesepahaman'] ?? $data['status_progres_kesepahaman'] ?? '') ?></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tindak Lanjut</label>
+                                        <textarea name="tindaklanjut_kesepahaman" class="form-control" rows="2"><?= htmlspecialchars($_POST['tindaklanjut_kesepahaman'] ?? $data['tindaklanjut_kesepahaman'] ?? '') ?></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Keterangan</label>
+                                        <input type="text" name="keterangan_kesepahaman" class="form-control" value="<?= htmlspecialchars($_POST['keterangan_kesepahaman'] ?? $data['keterangan_kesepahaman'] ?? '') ?>">
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="text-center mt-4" id="lanjutPksButtonContainer" <?= $pksDataExists ? 'style="display: none;"' : '' ?>><button type="button" class="btn btn-warning" id="btnLanjutPks"><i class="bi bi-arrow-down-circle"></i> Lanjut isi PKS</button></div>
+                            <div class="text-center mt-4" id="lanjutPksButtonContainer" <?= $pksDataExists ? 'style="display: none;"' : '' ?>>
+                                <button type="button" class="btn btn-warning" id="btnLanjutPks">
+                                    <i class="bi bi-arrow-down-circle"></i> Lanjut isi PKS
+                                </button>
+                            </div>
+                            
                             <div id="pksSection" <?= !$pksDataExists ? 'style="display: none;"' : '' ?>>
-                                <h5 class="form-section-title mt-5"><i class="bi bi-file-earmark-text"></i> Tahap PKS</h5>
+                                <h5 class="form-section-title mt-5 pb-2 mb-4"><i class="bi bi-file-earmark-text"></i> Tahap PKS</h5>
                                 <div class="row g-3">
-                                   <!-- Isi field PKS -->
                                     <div class="col-md-6">
-                                        <div class="mb-3"><label class="form-label">Status PKS</label><select name="status_pks" class="form-select"><option value="">-- Pilih Status --</option><option value="Signed" <?= ($data['status_pks'] ?? '') == 'Signed' ? 'selected' : '' ?>>Signed</option><option value="Not Available" <?= ($data['status_pks'] ?? '') == 'Not Available' ? 'selected' : '' ?>>Not Available</option><option value="Drafting/In Progress" <?= ($data['status_pks'] ?? '') == 'Drafting/In Progress' ? 'selected' : '' ?>>Drafting/In Progress</option></select></div>
-                                        <div class="mb-3"><label class="form-label">Nomor</label><input type="text" name="nomor_pks" class="form-control" value="<?= htmlspecialchars($data['nomor_pks'] ?? '') ?>"></div>
-                                        <div class="mb-3"><label class="form-label">Tanggal</label><input type="date" name="tanggal_pks" class="form-control" value="<?= htmlspecialchars($data['tanggal_pks'] ?? '') ?>"></div>
-                                        <div class="mb-3"><label class="form-label">Status Pelaksanaan PKS</label><select name="status_pelaksanaan_pks" class="form-select"><option value="">-- Pilih Status --</option><option value="Implemented" <?= ($data['status_pelaksanaan_pks'] ?? '') == 'Implemented' ? 'selected' : '' ?>>Implemented</option><option value="In Progress" <?= ($data['status_pelaksanaan_pks'] ?? '') == 'In Progress' ? 'selected' : '' ?>>In Progress</option><option value="Not Yet" <?= ($data['status_pelaksanaan_pks'] ?? '') == 'Not Yet' ? 'selected' : '' ?>>Not Yet</option></select></div>
-                                        <div class="mb-3"><label class="form-label">Rencana Pertemuan</label><input type="date" name="rencana_pertemuan_pks" class="form-control" value="<?= htmlspecialchars($data['rencana_pertemuan_pks'] ?? '') ?>"></div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Status PKS</label>
+                                            <select name="status_pks" class="form-select">
+                                                <option value="">-- Pilih Status --</option>
+                                                <?php 
+                                                $current_status_pks = $_POST['status_pks'] ?? $data['status_pks'] ?? '';
+                                                foreach ($status_options as $status): ?>
+                                                    <option value="<?= htmlspecialchars($status) ?>" <?= $current_status_pks == $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Nomor</label>
+                                            <input type="text" name="nomor_pks" class="form-control" value="<?= htmlspecialchars($_POST['nomor_pks'] ?? $data['nomor_pks'] ?? '') ?>">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Tanggal</label>
+                                            <input type="date" name="tanggal_pks" class="form-control" value="<?= htmlspecialchars($_POST['tanggal_pks'] ?? $data['tanggal_pks'] ?? '') ?>">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Status Pelaksanaan PKS</label>
+                                            <select name="status_pelaksanaan_pks" class="form-select">
+                                                <option value="">-- Pilih Status --</option>
+                                                <?php 
+                                                $current_pelaksanaan_pks = $_POST['status_pelaksanaan_pks'] ?? $data['status_pelaksanaan_pks'] ?? '';
+                                                foreach ($pelaksanaan_options as $pelaksanaan): ?>
+                                                    <option value="<?= htmlspecialchars($pelaksanaan) ?>" <?= $current_pelaksanaan_pks == $pelaksanaan ? 'selected' : '' ?>><?= htmlspecialchars($pelaksanaan) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Rencana Pertemuan</label>
+                                            <input type="date" name="rencana_pertemuan_pks" class="form-control" value="<?= htmlspecialchars($_POST['rencana_pertemuan_pks'] ?? $data['rencana_pertemuan_pks'] ?? '') ?>">
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="mb-3"><label class="form-label">Ruang Lingkup</label><textarea name="ruanglingkup_pks" class="form-control" rows="2"><?= htmlspecialchars($data['ruanglingkup_pks'] ?? '') ?></textarea></div>
-                                        <div class="mb-3"><label class="form-label">Status/Progres</label><textarea name="status_progres_pks" class="form-control" rows="2"><?= htmlspecialchars($data['status_progres_pks'] ?? '') ?></textarea></div>
-                                        <div class="mb-3"><label class="form-label">Tindak Lanjut</label><textarea name="tindaklanjut_pks" class="form-control" rows="2"><?= htmlspecialchars($data['tindaklanjut_pks'] ?? '') ?></textarea></div>
-                                        <div class="mb-3"><label class="form-label">Keterangan</label><input type="text" name="keterangan_pks" class="form-control" value="<?= htmlspecialchars($data['keterangan_pks'] ?? '') ?>"></div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Ruang Lingkup</label>
+                                            <textarea name="ruanglingkup_pks" class="form-control" rows="2"><?= htmlspecialchars($_POST['ruanglingkup_pks'] ?? $data['ruanglingkup_pks'] ?? '') ?></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Status/Progres</label>
+                                            <textarea name="status_progres_pks" class="form-control" rows="2"><?= htmlspecialchars($_POST['status_progres_pks'] ?? $data['status_progres_pks'] ?? '') ?></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Tindak Lanjut</label>
+                                            <textarea name="tindaklanjut_pks" class="form-control" rows="2"><?= htmlspecialchars($_POST['tindaklanjut_pks'] ?? $data['tindaklanjut_pks'] ?? '') ?></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Keterangan</label>
+                                            <input type="text" name="keterangan_pks" class="form-control" value="<?= htmlspecialchars($_POST['keterangan_pks'] ?? $data['keterangan_pks'] ?? '') ?>">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <h5 class="form-section-title mt-5"><i class="bi bi-paperclip"></i> Dokumen Pendukung</h5>
+                            <h5 class="form-section-title mt-5 pb-2 mb-4"><i class="bi bi-paperclip"></i> Dokumen Pendukung</h5>
                             <div class="row g-4 file-upload-section">
                                 <?php
                                 $fileLabels = ['File Kesepahaman (MoU)', 'File PKS', 'File Notulensi'];
@@ -233,7 +360,7 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
                                     $fileNameKey = "file_name_" . $i;
                                 ?>
                                 <div class="col-md-12">
-                                    <label class="form-label"><?= $fileLabels[$i-1] ?></label>
+                                    <label class="form-label"><?= htmlspecialchars($fileLabels[$i-1]) ?></label>
                                     <?php if (!empty($data[$fileKey])): ?>
                                         <div class="mb-2">
                                             <small>File saat ini: 
@@ -244,16 +371,21 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
                                         </div>
                                     <?php endif; ?>
                                     <div class="input-group">
-                                        <input type="text" name="<?= $fileNameKey ?>" class="form-control" placeholder="Nama kustom (jika ganti file)">
-                                        <input type="file" name="<?= $fileKey ?>" class="form-control">
+                                        <input type="text" name="<?= htmlspecialchars($fileNameKey) ?>" class="form-control" placeholder="Nama kustom (jika ganti file)" value="<?= htmlspecialchars($_POST[$fileNameKey] ?? '') ?>">
+                                        <input type="file" name="<?= htmlspecialchars($fileKey) ?>" class="form-control">
                                     </div>
-                                     <small class="form-text text-muted">Isi nama kustom dan pilih file baru jika ingin mengganti.</small>
+                                    <small class="form-text text-muted">Isi nama kustom dan pilih file baru jika ingin mengganti.</small>
                                 </div>
                                 <?php endfor; ?>
                             </div>
                             
                             <hr class="my-5">
-                            <div class="d-flex justify-content-end gap-2"><a href="index.php" class="btn btn-secondary">Batal</a><button type="submit" class="btn btn-primary"><i class="bi bi-save-fill me-2"></i>Update Data</button></div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="index.php" class="btn btn-secondary">Batal</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save-fill me-2"></i>Update Data
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -262,14 +394,19 @@ $pksDataExists = !empty($data['status_pks']) || !empty($data['nomor_pks']) || !e
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        if(document.getElementById('btnLanjutPks')) {
-            document.getElementById('btnLanjutPks').addEventListener('click', function() {
-                this.parentElement.style.display = 'none';
-                document.getElementById('pksSection').style.display = 'block';
-                document.getElementById('pksSection').scrollIntoView({ behavior: 'smooth' });
-            });
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnLanjutPks = document.getElementById('btnLanjutPks');
+            const pksSection = document.getElementById('pksSection');
+            const lanjutPksButtonContainer = document.getElementById('lanjutPksButtonContainer');
+            
+            if (btnLanjutPks) {
+                btnLanjutPks.addEventListener('click', function() {
+                    lanjutPksButtonContainer.style.display = 'none';
+                    pksSection.style.display = 'block';
+                    pksSection.scrollIntoView({ behavior: 'smooth' });
+                });
+            }
+        });
     </script>
 </body>
 </html>
-
