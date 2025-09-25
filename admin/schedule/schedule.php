@@ -6,10 +6,10 @@ if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// --- PENGHAPUSAN JADWAL OTOMATIS ---
+// Hapus jadwal yang sudah lebih dari 2 hari
 $conn->query("DELETE FROM jadwal_acara WHERE tanggal_acara < DATE_SUB(CURDATE(), INTERVAL 2 DAY)");
 
-// --- LOGIKA PENGELOMPOKAN JADWAL ---
+// Ambil dan kelompokkan jadwal
 $sql = "SELECT * FROM jadwal_acara ORDER BY tanggal_acara DESC, jam_acara DESC";
 $result = $conn->query($sql);
 
@@ -24,17 +24,15 @@ if ($result && $result->num_rows > 0) {
     }
 }
 
-// --- PENANDA HARI INI ---
 $today_date = date('Y-m-d');
 
-// Fungsi untuk memformat tanggal ke format Indonesia
+// Fungsi format tanggal
 function format_tanggal_indonesia($date_string) {
     $hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     $bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $timestamp = strtotime($date_string);
     return $hari[date('w', $timestamp)] . ', ' . date('d', $timestamp) . ' ' . $bulan[(int)date('n', $timestamp)] . ' ' . date('Y', $timestamp);
 }
-
 
 include __DIR__ . "/../../views/header.php";
 ?>
@@ -85,8 +83,8 @@ include __DIR__ . "/../../views/header.php";
         .bubble-time { font-weight: 700; color: var(--bs-blue-dark); }
         .bubble-actions .btn { opacity: 0; transition: opacity 0.2s; }
         .schedule-bubble:hover .bubble-actions .btn { opacity: 1; }
-        .btn-wa { background-color: #25D366; color: white; }
-        .btn-wa:hover { background-color: #1DAE54; }
+        .btn-gcal { background-color: #4285F4; color: white; } /* Tombol Google Calendar */
+        .btn-gcal:hover { background-color: #357ae8; }
 
         .bubble-title { font-weight: 600; font-size: 1.1em; margin-bottom: 5px; }
         .bubble-place { font-size: 0.95em; color: #555; display: flex; align-items: center; gap: 5px; }
@@ -106,7 +104,7 @@ include __DIR__ . "/../../views/header.php";
             <h1 class="page-title"><i class="bi bi-calendar-heart"></i> Linimasa Jadwal</h1>
         </div>
         <div class="controls-section mb-4">
-            <p class="text-center mb-0">Semua jadwal acara ditampilkan secara kronologis. Gunakan tombol di bawah untuk menambahkan jadwal baru.</p>
+            <p class="text-center mb-0">Semua jadwal acara ditampilkan secara kronologis. Gunakan tombol di bawah untuk menambahkan jadwal baru atau menambahkannya ke kalender pribadi Anda.</p>
             <div class="mt-3 text-center">
                  <button class="btn btn-primary" onclick="openTambah()">
                     <i class="bi bi-plus-circle"></i> Tambah Jadwal Baru
@@ -129,7 +127,7 @@ include __DIR__ . "/../../views/header.php";
                     ?>
 
                     <div class="date-separator <?= $reminder_class ?>">
-                        <span data-date-raw="<?= $date ?>"><?= $reminder_icon ?> <?= $reminder_text ?></span>
+                        <span><?= $reminder_icon ?> <?= $reminder_text ?></span>
                     </div>
 
                     <?php $side = ($date_group_counter % 2 == 0) ? 'left' : 'right'; ?>
@@ -140,12 +138,15 @@ include __DIR__ . "/../../views/header.php";
                                     <div class="bubble-header">
                                         <span class="bubble-time"><?= date('H:i', strtotime($schedule['jam_acara'])) ?> WIB</span>
                                         <div class="bubble-actions">
-                                            <button class="btn btn-sm btn-wa" title="Salin Info Jadwal" onclick="copyScheduleInfo(this)"><i class="bi bi-clipboard-check"></i></button>
+                                            <!-- Tombol Google Calendar ditambahkan di sini -->
+                                            <button class="btn btn-sm btn-gcal" title="Tambah ke Google Calendar" onclick="addToGoogleCalendar(this)"><i class="bi bi-calendar-plus"></i></button>
                                             <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEdit(<?= $schedule['id'] ?>)"><i class="bi bi-pencil-fill"></i></button>
                                             <button class="btn btn-sm btn-outline-danger" title="Hapus" onclick="openDeleteConfirm(<?= $schedule['id'] ?>, '<?= htmlspecialchars($schedule['judul_acara'], ENT_QUOTES) ?>')"><i class="bi bi-trash-fill"></i></button>
                                         </div>
                                     </div>
-                                    <div class="bubble-body">
+                                    <div class="bubble-body" 
+                                         data-tanggal="<?= htmlspecialchars($schedule['tanggal_acara']) ?>"
+                                         data-jam="<?= htmlspecialchars($schedule['jam_acara']) ?>">
                                         <h5 class="bubble-title"><?= htmlspecialchars($schedule['judul_acara']) ?></h5>
                                         <p class="bubble-place"><i class="bi bi-geo-alt-fill"></i><?= htmlspecialchars($schedule['tempat']) ?></p>
                                         <?php if (!empty($schedule['agenda'])): ?>
@@ -175,151 +176,80 @@ include __DIR__ . "/../../views/header.php";
     const formModal = new bootstrap.Modal(document.getElementById('formModal'));
     const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
 
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification show';
-        toast.textContent = '✅ ' + message;
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove()); }, 3000);
-    }
+    // ... (Sisa JavaScript: showToast, handleFormSubmit, openTambah, fetchScheduleData, openEdit, openDeleteConfirm tetap sama) ...
+    function showToast(message) { /* ... */ }
+    function handleFormSubmit(event) { /* ... */ }
+    function openTambah() { /* ... */ }
+    async function fetchScheduleData(id) { /* ... */ }
+    async function openEdit(id) { /* ... */ }
+    function openDeleteConfirm(id, scheduleName) { /* ... */ }
     
-    // ... (Sisa JavaScript: handleFormSubmit, openTambah, fetchScheduleData, openEdit, openDeleteConfirm tetap sama) ...
-    function handleFormSubmit(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        fetch(form.action, { method: 'POST', body: formData })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    formModal.hide();
-                    showToast(data.message || 'Operasi berhasil!');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    alert('Error: ' + (data.error || 'Terjadi kesalahan.'));
-                }
-            });
-    }
-    function openTambah() {
-        document.getElementById('formModalLabel').innerHTML = '<i class="bi bi-plus-circle"></i> Tambah Jadwal Baru';
-        const modalBody = document.getElementById('modalBodyContent');
-        modalBody.innerHTML = `
-            <form id="scheduleForm" action="schedule_add.php" method="POST">
-                <div class="mb-3"><label class="form-label">Judul Acara*</label><input type="text" name="judul_acara" class="form-control" required></div>
-                <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Tanggal*</label><input type="date" name="tanggal_acara" class="form-control" required></div><div class="col-md-6 mb-3"><label class="form-label">Jam*</label><input type="time" name="jam_acara" class="form-control" required></div></div>
-                <div class="mb-3"><label class="form-label">Tempat*</label><input type="text" name="tempat" class="form-control" required></div>
-                <div class="mb-3"><label class="form-label">Agenda</label><textarea name="agenda" class="form-control" rows="3"></textarea></div>
-                <div class="mb-3"><label class="form-label">Keterangan</label><textarea name="keterangan" class="form-control" rows="2"></textarea></div>
-                <div class="text-end"><button type="submit" class="btn btn-primary">Simpan Jadwal</button></div>
-            </form>
-        `;
-        document.getElementById('scheduleForm').addEventListener('submit', handleFormSubmit);
-        formModal.show();
-    }
-    async function fetchScheduleData(id) {
-        try {
-            const response = await fetch(`schedule_get.php?id=${id}`);
-            const data = await response.json();
-            if (!response.ok || data.error) {
-                throw new Error(data.error || `HTTP error! Status: ${response.status}`);
-            }
-            return data;
-        } catch (error) {
-            console.error("Fetch Error:", error);
-            return { fetchError: error.message };
-        }
-    }
-    async function openEdit(id) {
-        document.getElementById('formModalLabel').innerHTML = '<i class="bi bi-pencil-square"></i> Edit Jadwal';
-        const modalBody = document.getElementById('modalBodyContent');
-        modalBody.innerHTML = '<p class="text-center">Memuat data...</p>';
-        formModal.show();
-        const data = await fetchScheduleData(id);
-        if (data && !data.fetchError) {
-            modalBody.innerHTML = `
-                <form id="scheduleForm" action="schedule_update.php" method="POST">
-                    <input type="hidden" name="id" value="${data.id}">
-                    <div class="mb-3"><label class="form-label">Judul Acara*</label><input type="text" name="judul_acara" class="form-control" value="${data.judul_acara}" required></div>
-                    <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Tanggal*</label><input type="date" name="tanggal_acara" class="form-control" value="${data.tanggal_acara}" required></div><div class="col-md-6 mb-3"><label class="form-label">Jam*</label><input type="time" name="jam_acara" class="form-control" value="${data.jam_acara}" required></div></div>
-                    <div class="mb-3"><label class="form-label">Tempat*</label><input type="text" name="tempat" class="form-control" value="${data.tempat}" required></div>
-                    <div class="mb-3"><label class="form-label">Agenda</label><textarea name="agenda" class="form-control" rows="3">${data.agenda || ''}</textarea></div>
-                    <div class="mb-3"><label class="form-label">Keterangan</label><textarea name="keterangan" class="form-control" rows="2">${data.keterangan || ''}</textarea></div>
-                    <div class="text-end"><button type="submit" class="btn btn-primary">Simpan Perubahan</button></div>
-                </form>
-            `;
-            document.getElementById('scheduleForm').addEventListener('submit', handleFormSubmit);
-        } else {
-            const errorMessage = data ? data.fetchError : "Gagal memuat data.";
-            modalBody.innerHTML = `<p class="text-center text-danger"><strong>Gagal Memuat:</strong><br>${errorMessage}</p>`;
-        }
-    }
-    function openDeleteConfirm(id, scheduleName) {
-        document.getElementById('scheduleNameToDelete').textContent = scheduleName;
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        confirmBtn.onclick = () => {
-            fetch('schedule_delete.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `id=${id}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    deleteConfirmModal.hide();
-                    showToast('Jadwal berhasil dihapus!');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    alert('Error: ' + (data.error || 'Gagal menghapus jadwal.'));
-                }
-            });
-        };
-        deleteConfirmModal.show();
-    }
-
     /**
-     * Fungsi yang diperbarui untuk menyalin info jadwal ke clipboard.
-     * @param {HTMLElement} buttonElement - Tombol yang diklik.
+     * Fungsi baru untuk membuat link dan membuka Google Calendar.
+     * @param {HTMLElement} buttonElement - Tombol Google Calendar yang diklik.
      */
-    function copyScheduleInfo(buttonElement) {
-        const bubble = buttonElement.closest('.schedule-bubble');
-        const dayFrame = buttonElement.closest('.day-frame');
-        const dateSeparator = dayFrame.previousElementSibling;
-
-        const judul = bubble.querySelector('.bubble-title').textContent.trim();
-        const waktu = bubble.querySelector('.bubble-time').textContent.trim();
-        const tempat = bubble.querySelector('.bubble-place').textContent.trim();
-        const tanggalText = dateSeparator.querySelector('span').textContent.replace('HARI INI', '').trim();
+    function addToGoogleCalendar(buttonElement) {
+        const bubbleBody = buttonElement.closest('.schedule-bubble').querySelector('.bubble-body');
         
-        const agendaEl = bubble.querySelector('.bubble-agenda');
-        const agenda = agendaEl ? agendaEl.textContent.trim() : null;
+        // Ambil detail dari elemen HTML
+        const judul = bubbleBody.querySelector('.bubble-title').textContent.trim();
+        const tempat = bubbleBody.querySelector('.bubble-place').textContent.trim();
+        const tanggal = bubbleBody.dataset.tanggal; // YYYY-MM-DD
+        const jam = bubbleBody.dataset.jam;       // HH:mm:ss
+
+        const agendaEl = bubbleBody.querySelector('.bubble-agenda');
+        const agenda = agendaEl ? agendaEl.textContent.trim() : '';
         
-        const keteranganEl = bubble.querySelector('.bubble-keterangan');
-        const keterangan = keteranganEl ? keteranganEl.textContent.trim() : null;
+        const keteranganEl = bubbleBody.querySelector('.bubble-keterangan');
+        const keterangan = keteranganEl ? keteranganEl.textContent.trim() : '';
 
-        // Susun pesan dengan format yang rapi untuk WA
-        let message = `*INFORMASI JADWAL*\n\n`;
-        message += `*Judul:*\n${judul}\n\n`;
-        message += `*Tanggal:*\n${tanggalText}\n\n`;
-        message += `*Waktu:*\n${waktu}\n\n`;
-        message += `*Tempat:*\n${tempat}\n\n`;
+        // Gabungkan tanggal dan jam menjadi format ISO 8601 (diperlukan oleh Google Calendar)
+        // Format: YYYYMMDDTHHmmSSZ (UTC time)
+        const startTime = new Date(`${tanggal}T${jam}`);
+        // Asumsi durasi acara 1 jam, bisa disesuaikan
+        const endTime = new Date(startTime.getTime() + (60 * 60 * 1000)); 
 
+        // Fungsi untuk format tanggal ke format UTC (YYYYMMDDTHHmmSSZ)
+        function toGoogleISO(date) {
+            return date.toISOString().replace(/-|:|\.\d+/g, '');
+        }
+        
+        const googleStartTime = toGoogleISO(startTime);
+        const googleEndTime = toGoogleISO(endTime);
+        
+        // Buat deskripsi acara
+        let description = '';
         if (agenda) {
-            message += `*Agenda:*\n${agenda}\n\n`;
+            description += `Agenda Pembahasan:\n${agenda}\n\n`;
         }
         if (keterangan) {
-            message += `*Keterangan:*\n${keterangan}\n`;
+            description += `Keterangan:\n${keterangan}`;
         }
         
-        // Gunakan Clipboard API untuk menyalin pesan
-        navigator.clipboard.writeText(message).then(() => {
-            // Tampilkan notifikasi toast setelah berhasil menyalin
-            showToast('Info jadwal berhasil disalin!');
-        }).catch(err => {
-            console.error('Gagal menyalin ke clipboard:', err);
-            alert('Gagal menyalin info.');
+        // Buat URL Google Calendar
+        const baseUrl = 'https://www.google.com/calendar/render?action=TEMPLATE';
+        const params = new URLSearchParams({
+            text: judul,
+            dates: `${googleStartTime}/${googleEndTime}`,
+            details: description,
+            location: tempat,
+            ctz: 'Asia/Jakarta' // Set zona waktu ke Jakarta
         });
+        
+        const calendarUrl = `${baseUrl}&${params.toString()}`;
+        
+        // Buka di tab baru
+        window.open(calendarUrl, '_blank');
     }
+
+
+    // --- Inisialisasi fungsi yang sudah ada (disingkat) ---
+    function showToast(message) { const toast = document.createElement('div'); toast.className = 'toast-notification show'; toast.textContent = '✅ ' + message; document.body.appendChild(toast); setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove()); }, 3000); }
+    function handleFormSubmit(event) { event.preventDefault(); const form = event.target; const formData = new FormData(form); fetch(form.action, { method: 'POST', body: formData }).then(response => response.json()).then(data => { if (data.success) { formModal.hide(); showToast(data.message || 'Operasi berhasil!'); setTimeout(() => location.reload(), 1500); } else { alert('Error: ' + (data.error || 'Terjadi kesalahan.')); } }); }
+    function openTambah() { document.getElementById('formModalLabel').innerHTML = '<i class="bi bi-plus-circle"></i> Tambah Jadwal Baru'; const modalBody = document.getElementById('modalBodyContent'); modalBody.innerHTML = `<form id="scheduleForm" action="schedule_add.php" method="POST"><div class="mb-3"><label class="form-label">Judul Acara*</label><input type="text" name="judul_acara" class="form-control" required></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Tanggal*</label><input type="date" name="tanggal_acara" class="form-control" required></div><div class="col-md-6 mb-3"><label class="form-label">Jam*</label><input type="time" name="jam_acara" class="form-control" required></div></div><div class="mb-3"><label class="form-label">Tempat*</label><input type="text" name="tempat" class="form-control" required></div><div class="mb-3"><label class="form-label">Agenda</label><textarea name="agenda" class="form-control" rows="3"></textarea></div><div class="mb-3"><label class="form-label">Keterangan</label><textarea name="keterangan" class="form-control" rows="2"></textarea></div><div class="text-end"><button type="submit" class="btn btn-primary">Simpan Jadwal</button></div></form>`; document.getElementById('scheduleForm').addEventListener('submit', handleFormSubmit); formModal.show(); }
+    async function fetchScheduleData(id) { try { const response = await fetch(`schedule_get.php?id=${id}`); const data = await response.json(); if (!response.ok || data.error) { throw new Error(data.error || `HTTP error! Status: ${response.status}`); } return data; } catch (error) { console.error("Fetch Error:", error); return { fetchError: error.message }; } }
+    async function openEdit(id) { document.getElementById('formModalLabel').innerHTML = '<i class="bi bi-pencil-square"></i> Edit Jadwal'; const modalBody = document.getElementById('modalBodyContent'); modalBody.innerHTML = '<p class="text-center">Memuat data...</p>'; formModal.show(); const data = await fetchScheduleData(id); if (data && !data.fetchError) { modalBody.innerHTML = `<form id="scheduleForm" action="schedule_update.php" method="POST"><input type="hidden" name="id" value="${data.id}"><div class="mb-3"><label class="form-label">Judul Acara*</label><input type="text" name="judul_acara" class="form-control" value="${data.judul_acara}" required></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Tanggal*</label><input type="date" name="tanggal_acara" class="form-control" value="${data.tanggal_acara}" required></div><div class="col-md-6 mb-3"><label class="form-label">Jam*</label><input type="time" name="jam_acara" class="form-control" value="${data.jam_acara}" required></div></div><div class="mb-3"><label class="form-label">Tempat*</label><input type="text" name="tempat" class="form-control" value="${data.tempat}" required></div><div class="mb-3"><label class="form-label">Agenda</label><textarea name="agenda" class="form-control" rows="3">${data.agenda || ''}</textarea></div><div class="mb-3"><label class="form-label">Keterangan</label><textarea name="keterangan" class="form-control" rows="2">${data.keterangan || ''}</textarea></div><div class="text-end"><button type="submit" class="btn btn-primary">Simpan Perubahan</button></div></form>`; document.getElementById('scheduleForm').addEventListener('submit', handleFormSubmit); } else { const errorMessage = data ? data.fetchError : "Gagal memuat data."; modalBody.innerHTML = `<p class="text-center text-danger"><strong>Gagal Memuat:</strong><br>${errorMessage}</p>`; } }
+    function openDeleteConfirm(id, scheduleName) { document.getElementById('scheduleNameToDelete').textContent = scheduleName; const confirmBtn = document.getElementById('confirmDeleteBtn'); confirmBtn.onclick = () => { fetch('schedule_delete.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `id=${id}` }).then(response => response.json()).then(data => { if (data.success) { deleteConfirmModal.hide(); showToast('Jadwal berhasil dihapus!'); setTimeout(() => location.reload(), 1500); } else { alert('Error: ' + (data.error || 'Gagal menghapus jadwal.')); } }); }; deleteConfirmModal.show(); }
 </script>
 </body>
 </html>
-
