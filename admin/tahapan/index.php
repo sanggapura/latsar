@@ -148,7 +148,7 @@ function formatValue($value) {
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                  <thead>
-                    <tr><th>No</th><th>Nama Mitra</th><th>Jenis</th><th>Status MoU</th><th>Status PKS</th><th>Aksi</th></tr>
+                    <tr><th>No</th><th>Nama Mitra</th><th>Jenis</th><th>Status KB</th><th>Status PKS</th><th>Aksi</th></tr>
                 </thead>
                 <tbody id="mitraTableBody">
                 <?php
@@ -223,7 +223,7 @@ if ($result && $result->num_rows > 0) {
             </div>
             <div class="modal-body">
                 <div class="detail-section"><h6><i class="bi bi-building"></i> Informasi Dasar</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Jenis Mitra:</span><br><?= formatValue($row['jenis_mitra']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Sumber Usulan:</span><br><?= formatValue($row['sumber_usulan']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Prioritas:</span><br><?= $row['tandai'] ? 'Ya' : 'Tidak' ?></p></div></div></div>
-                <div class="detail-section"><h6><i class="bi bi-handshake"></i> Tahap Kesepahaman (MoU)</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_kesepahaman']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Rencana Kolaborasi:</span><br><?= nl2br(formatValue($row['rencana_kolaborasi_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_kesepahaman']) ?></p></div></div></div>
+                <div class="detail-section"><h6><i class="bi bi-handshake"></i> Tahap Kesepahaman Bersama</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_kesepahaman']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_kesepahaman']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Rencana Kolaborasi:</span><br><?= nl2br(formatValue($row['rencana_kolaborasi_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_kesepahaman'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_kesepahaman']) ?></p></div></div></div>
                 <div class="detail-section"><h6><i class="bi bi-file-earmark-text"></i> Tahap PKS</h6><div class="row"><div class="col-md-4"><p><span class="detail-label">Status:</span><br><?= formatValue($row['status_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Nomor:</span><br><?= formatValue($row['nomor_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Tanggal:</span><br><?= formatDate($row['tanggal_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Status Pelaksanaan:</span><br><?= formatValue($row['status_pelaksanaan_pks']) ?></p></div><div class="col-md-4"><p><span class="detail-label">Rencana Pertemuan:</span><br><?= formatDate($row['rencana_pertemuan_pks']) ?></p></div><div class="col-md-12"><p><span class="detail-label">Ruang Lingkup:</span><br><?= nl2br(formatValue($row['ruanglingkup_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Status/Progres:</span><br><?= nl2br(formatValue($row['status_progres_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Tindak Lanjut:</span><br><?= nl2br(formatValue($row['tindaklanjut_pks'])) ?></p></div><div class="col-md-12"><p><span class="detail-label">Keterangan:</span><br><?= formatValue($row['keterangan_pks']) ?></p></div></div></div>
                 
                 <div class="detail-section">
@@ -266,7 +266,11 @@ if ($result && $result->num_rows > 0) {
                 </div>
 
             </div>
-            <div class="modal-footer"><a href="export_excel.php?id=<?= $row['id'] ?>" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</a><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
+            <div class="modal-footer">
+                <a href="export_word.php?id=<?= $row['id'] ?>" class="btn btn-primary"><i class="bi bi-file-earmark-word-fill"></i> Export Word</a>
+                <a href="export_excel.php?id=<?= $row['id'] ?>" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
         </div>
     </div>
 </div>
@@ -293,7 +297,6 @@ if ($result && $result->num_rows > 0) {
   </div>
 </div>
 
-<!-- Modal untuk View File -->
 <div class="modal fade" id="viewFileModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
@@ -364,4 +367,3 @@ if ($result && $result->num_rows > 0) {
 </script>
 </body>
 </html>
-
