@@ -190,8 +190,6 @@ function formatValue($value) {
                             </div>
                         </td>
                         <td class="text-center" onclick="event.stopPropagation();">
-                            <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-fill"></i></a>
-                            
                             <button type="button" class="btn btn-sm btn-outline-danger" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#deleteConfirmModal"
@@ -267,6 +265,7 @@ if ($result && $result->num_rows > 0) {
 
             </div>
             <div class="modal-footer">
+                <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Edit</a>
                 <a href="export_word.php?id=<?= $row['id'] ?>" class="btn btn-primary"><i class="bi bi-file-earmark-word-fill"></i> Export Word</a>
                 <a href="export_excel.php?id=<?= $row['id'] ?>" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
